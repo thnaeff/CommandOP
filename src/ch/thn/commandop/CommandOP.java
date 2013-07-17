@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 
+
 /**
  * @author thomas
  *
@@ -20,8 +21,11 @@ public class CommandOP extends CmdLnItem {
 	private LinkedHashMap<String, PreParsedItem> unknownArguments = null;
 	
 	private LinkedList<CommandOPGroup> groups = null;
+	private LinkedList<String> errors = null;
 	
 	private String[] args = null;
+	
+	private boolean exceptionAtFirstError = false;
 	
 	
 	/**
@@ -34,6 +38,7 @@ public class CommandOP extends CmdLnItem {
 		items = new LinkedHashMap<String, CmdLnItem>();
 		groups = new LinkedList<CommandOPGroup>();
 		unknownArguments = new LinkedHashMap<String, PreParsedItem>();
+		errors = new LinkedList<String>();
 		
 	}
 	
@@ -245,12 +250,21 @@ public class CommandOP extends CmdLnItem {
 	}
 	
 	/**
+	 * Returns all the error messages of the errors which occured during parsing
+	 * 
+	 * @return
+	 */
+	public LinkedList<String> getErrorMessages() {
+		return errors;
+	}
+	
+	/**
 	 * This method does all the steps required for the parsing.
 	 * 
 	 * @param args
 	 * @return
 	 */
-	public boolean parse(String[] args) {
+	public boolean parse(String[] args) throws CommandOPException {
 		this.args = args;
 		chainHead = null;
 		
@@ -275,7 +289,7 @@ public class CommandOP extends CmdLnItem {
 	 * 
 	 * @return
 	 */
-	private boolean validate() {
+	private boolean validate() throws CommandOPException {
 		
 		LinkedList<CmdLnItem> itemsFlat = CommandOPTools.createFlatList(items);
 		boolean error = false;
@@ -283,22 +297,24 @@ public class CommandOP extends CmdLnItem {
 		for (CmdLnItem item : itemsFlat) {
 			//Mandatory
 			//If the item has a parent item, only validate it if the parent item is parsed too
-			if (item.isMandatory() && !item.isParsed() 
-					&& (item.getParent() == null || item.getParent().isParsed())) {
-				System.err.println("CommandOP> Mandatory item '" + item.getName() + "' not found");
-				error = true;
+			if (!item.hasParent() || (item.hasParent() && item.getParentInternal().isParsed())) {
+				if (item.isMandatory() && !item.isParsed()) {
+					error("Mandatory item '" + item.getName() + "' not found");
+					error = true;
+				}
 			}
 			
 			//Required value
 			if (item.isValueRequired() && item.isParsed() && item.getValue() == null) {
-				System.err.println("CommandOP> Item '" + item.getName() + "' requires a value");
+				error("Item '" + item.getName() + "' requires a value");
 				error = true;
 			}
 			
 			//Minimum number of values
 			if (item.isParsed() && item.isMultiValueItem() 
 					&& item.getNumOfValues() < item.getMultiValuesRangeMin()) {
-				System.err.println("CommandOP> Item '" + item.getName() + "' needs at least " + item.getMultiValuesRangeMin() + " values.");
+				error("Item '" + item.getName() + "' needs at least " + 
+					item.getMultiValuesRangeMin() + " values.");
 				error = true;
 			}
 		}
@@ -319,7 +335,8 @@ public class CommandOP extends CmdLnItem {
 						
 						if (numOfExisting > 1) {
 							//Another one has been found already
-							System.err.println("CommandOP> More than one item of the EXCLUDE-group '" + group.getName() + "' found.");
+							error("More than one item of the EXCLUDE-group '" + group.getName() + "' found. " +
+									"Only one of the following items is allowed: " + group.getItems().keySet());
 							error = true;
 							break;
 						}
@@ -329,20 +346,40 @@ public class CommandOP extends CmdLnItem {
 				}
 				
 				if (group.getMode() == CommandOPGroup.MODE_EXCLUDE_ONE && numOfExisting == 0) {
-					System.err.println("CommandOP> The EXCLUDE_ONE-group '" + group.getName() + "' needs at least one (but not more) of its items.");
+					error("The EXCLUDE_ONE-group '" + group.getName() + 
+							"' needs at least one (but not more) of its items. " +
+							"Items in the group are: " + group.getItems().keySet());
 					error = true;
 				}
 				
-			} else if (group.getMode() == CommandOPGroup.MODE_INCLUDE) {
-				//All of the given group items have to be given
+			} else if (group.getMode() == CommandOPGroup.MODE_INCLUDE 
+					|| group.getMode() == CommandOPGroup.MODE_INCLUDE_ONE) {
+				//The given group items have to be given together
+				
+				boolean hasOneParsedItem = false;
 				
 				for (CmdLnItem item : group.getItems().values()) {
-					if (!item.isParsed()) {
-						//One of the group items does not exist
-						System.err.println("CommandOP> One or more items of the INCLUDE-group '" + group.getName() + "' are missing.");
-						error = true;
-						break;
+					if (group.getMode() == CommandOPGroup.MODE_INCLUDE ) {
+						if (!item.isParsed()) {
+							//One of the group items does not exist
+							error("One or more items of the INCLUDE-group '" + group.getName() + 
+									"' are missing. Needed items are: " + group.getItems().keySet());
+							error = true;
+							break;
+						}
+					} else if (group.getMode() == CommandOPGroup.MODE_INCLUDE_ONE) {
+						if (item.isParsed()) {
+							hasOneParsedItem = true;
+							break;
+						}
 					}
+				}
+				
+				if (!hasOneParsedItem) {
+					//At least one of the group items is needed, but there was none
+					error("No item of the INCLUDE-group '" + group.getName() + 
+							"' has been found. At least one of these items is needed: " + group.getItems().keySet());
+					error = true;
 				}
 				
 			}
@@ -361,7 +398,7 @@ public class CommandOP extends CmdLnItem {
 	 * 
 	 * @return
 	 */
-	private boolean postParse() {
+	private boolean postParse() throws CommandOPException {
 		
 		PreParsedChain currentChain = chainHead;
 		CmdLnItem currentItem = null;
@@ -400,7 +437,7 @@ public class CommandOP extends CmdLnItem {
 				if (currentItem.hasChild(currentChain.getName())) {
 					currentItem = currentItem.getChild(currentChain.getName());
 				} else {
-					currentItem = currentItem.getParent();
+					currentItem = currentItem.getParentInternal();
 					boolean found = false;
 					
 					//Check all children and children of parents
@@ -436,7 +473,10 @@ public class CommandOP extends CmdLnItem {
 					currentItem.setAsParameter();
 				}
 				
-				if (!currentItem.setValue(currentChain.getValue())) {
+				String errormsg = currentItem.setValue(currentChain.getValue());
+				
+				if (errormsg != null) {
+					error(errormsg);
 					error = true;
 				} else {
 					currentItem.setCmdLnPos(currentChain.getChainPos());
@@ -456,11 +496,14 @@ public class CommandOP extends CmdLnItem {
 						value = currentChain.getName();
 					}
 					
-					if (!previousItem.addMultiValue(value)) {
+					String errormsg = previousItem.addMultiValue(value);
+					
+					if (errormsg != null) {
+						error(errormsg);
 						error = true;
 					}			
 				} else {
-					System.err.println("CommandOP> Unknown argument '" + currentChain.getName() + "' given");
+					error("Unknown argument '" + currentChain.getName() + "' given");
 					unknownArguments.put(currentChain.getName(), currentChain);
 					error = true;
 				}
@@ -490,11 +533,16 @@ public class CommandOP extends CmdLnItem {
 		PreParsedChain lastChain = null;
 		
 		for (int i = 0; i < args.length; i++) {
+			String a = args[i];
 			
-			if (CommandOPTools.isShortOption(args[i])) {
+			if (a == null || a.length() == 0) {
+				continue;
+			}
+			
+			if (CommandOPTools.isShortOption(a)) {
 				//SHORT option
 				
-				String shortOptions = CommandOPTools.getOption(args[i]);
+				String shortOptions = CommandOPTools.getOption(a);
 				
 				//Use each character as option
 				for (int j = 0; j < shortOptions.length(); j++) {
@@ -508,7 +556,7 @@ public class CommandOP extends CmdLnItem {
 				//LONG option
 				//PARAMETER
 				
-				PreParsedChain tempChain = new PreParsedChain(args[i], lastChain);
+				PreParsedChain tempChain = new PreParsedChain(a, lastChain);
 				
 				if (tempChain.getName() != null && tempChain.getName().length() > 0) {
 					lastChain = tempChain;
@@ -525,6 +573,19 @@ public class CommandOP extends CmdLnItem {
 		
 	}
 	
+	
+	private void error(String errorMessage) throws CommandOPException {
+		if (!exceptionAtFirstError) {
+			errors.add(errorMessage);
+		} else {
+			throw new CommandOPException(errorMessage);
+		}
+	}
+	
+	
+	public void exceptionAtFirstError(boolean e) {
+		exceptionAtFirstError = e;
+	}
 	
 	
 

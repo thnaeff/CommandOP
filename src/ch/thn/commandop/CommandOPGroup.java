@@ -15,10 +15,12 @@ public class CommandOPGroup {
 	
 	/** All items have to be given */
 	public static final int MODE_INCLUDE = 0;
+	/** At least one item has to be given */
+	public static final int MODE_INCLUDE_ONE = 1;
 	/** None or only one of the given items can be given */
-	public static final int MODE_EXCLUDE = 1;
+	public static final int MODE_EXCLUDE = 2;
 	/** At least one but no more of the given items can be given */
-	public static final int MODE_EXCLUDE_ONE = 2;
+	public static final int MODE_EXCLUDE_ONE = 3;
 	
 	
 	private String name = null;

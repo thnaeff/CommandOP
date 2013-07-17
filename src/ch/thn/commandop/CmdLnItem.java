@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Vector;
 
+import ch.thn.commandop.validator.CommandOPValidator;
+
 /**
  * @author thomas
  *
@@ -75,6 +77,14 @@ public class CmdLnItem {
 	
 	/**
 	 * 
+	 * @param name
+	 */
+	public CmdLnItem(String name) {
+		this(name, null, null);
+	}
+	
+	/**
+	 * 
 	 */
 	public CmdLnItem() {
 		this(null, null);
@@ -92,11 +102,25 @@ public class CmdLnItem {
 	}
 	
 	/**
-	 * Returns this items parent item
+	 * Returns this items parent item, or null if there is no parent
 	 * 
 	 * @return
 	 */
-	public CmdLnItem getParent() {
+	public CmdLnItem getParent() {	
+		if (parent instanceof CommandOP) {
+			return null;
+		}
+		
+		return parent;
+	}
+	
+	/**
+	 * Returns this items parent item. If it is a top level item, the parent 
+	 * might be a {@link CommandOP} object
+	 * 
+	 * @return
+	 */
+	protected CmdLnItem getParentInternal() {
 		return parent;
 	}
 	
@@ -166,12 +190,12 @@ public class CmdLnItem {
 		
 		CmdLnItem item = null;
 		
-		if (getParent() instanceof CommandOP) {
+		if (getParentInternal() instanceof CommandOP) {
 			//It's an option, so its parent is ComandOP
-			item = ((CommandOP)getParent()).addOption(aliasName, null);
+			item = ((CommandOP)getParentInternal()).addOption(aliasName, null);
 		} else {
 			//It's a parameter, so its parent is not ComandOP
-			item = getParent().addParameter(aliasName, null);
+			item = getParentInternal().addParameter(aliasName, null);
 		}
 		
 		item.setAliasOf(this);
@@ -306,7 +330,7 @@ public class CmdLnItem {
 		}
 		
 		if (isParsed) {
-			if (multiValuePos > values.size()) {
+			if (multiValuePos >= values.size()) {
 				return null;
 			}
 			
@@ -350,9 +374,10 @@ public class CmdLnItem {
 	 * to "false"<br>
 	 * 
 	 * @param value
-	 * @return
+	 * @return Returns an error message if setting the value failed, or null if 
+	 * everything was OK.
 	 */
-	protected boolean setValue(String value) {
+	protected String setValue(String value) {
 		return setValue(value, 0);
 	}
 	
@@ -366,9 +391,10 @@ public class CmdLnItem {
 	 * to "false"<br>
 	 * 
 	 * @param value
-	 * @return
+	 * @return Returns an error message if setting the value failed, or null if 
+	 * everything was OK.
 	 */
-	protected boolean addMultiValue(String value) {
+	protected String addMultiValue(String value) {
 		return setValue(value, values.size());
 	}
 	
@@ -383,9 +409,10 @@ public class CmdLnItem {
 	 * 
 	 * @param value
 	 * @param multiValuePos 
-	 * @return
+	 * @return Returns an error message if setting the value failed, or null if 
+	 * everything was OK.
 	 */
-	private boolean setValue(String value, int multiValuePos) {
+	private String setValue(String value, int multiValuePos) {
 
 		if (aliasOf != null) {
 			//This item is only the alias of another item
@@ -396,19 +423,17 @@ public class CmdLnItem {
 			if (value == null) {
 				//No null-values for multi value items. Otherwise things like 
 				//"item=null value1 value2" happen which do not make sense
-				return true;
+				return null;
 			} else if (multiValueMax != 0 && values.size() >= multiValueMax) {
 				//Limit the number of values if a value is set for multiValueMax
-				System.err.println("CommandOP> Item '" + getName() + "' is limited to " + multiValueMax + " values.");
-				return false;
+				return "Item '" + getName() + "' is limited to " + multiValueMax + " values.";
 			}
 		}
 		
 		//Do not parse an item twice (do not set a value twice) if its not 
 		//a multi value item
 		if (isParsed && !isMultiValueItem) {
-			System.err.println("CommandOP> Item '" + getName() + "' occurs more than once. Only first occurrence is used.");
-			return false;
+			return "Item '" + getName() + "' occurs more than once. Only first occurrence is used.";
 		}
 		
 		//Set the parsed flag already here. Even though the validation might fail 
@@ -418,8 +443,7 @@ public class CmdLnItem {
 		
 		if (validator != null) {
 			if (!validator.validate(this, value, multiValuePos)) {
-				System.err.println("CommandOP> Validation of item '" + getName() + "' with value '" + value + "' failed (validator was " + validator.getClass().getSimpleName() + ").");
-				return false;
+				return "[" + validator.getClass().getSimpleName() + "] Validation of item '" + getName() + "' with value '" + value + "' failed: " + validator.getErrorMessage();
 			}
 		}
 
@@ -441,7 +465,7 @@ public class CmdLnItem {
 			}
 		}
 		
-		return true;
+		return null;
 	}
 	
 	/**
@@ -451,11 +475,10 @@ public class CmdLnItem {
 	 * a mandatory item is only checked if its parent item is given
 	 * too.
 	 * 
-	 * @param mandatory
 	 * @return
 	 */
-	public CmdLnItem setMandatory(boolean mandatory) {
-		isMandatory = mandatory;
+	public CmdLnItem setMandatory() {
+		isMandatory = true;
 		return this;
 	}
 	
@@ -599,11 +622,10 @@ public class CmdLnItem {
 	 * an item-value-separator ({@link CommandOPTools}.ITEM_VALUE_SEPARATOR), 
 	 * followed by nothing (an empty string) or any other string.
 	 * 
-	 * @param isValueRequired
 	 * @return
 	 */
-	public CmdLnItem setValueRequired(boolean isValueRequired) {
-		this.isValueRequired = isValueRequired;
+	public CmdLnItem setValueRequired() {
+		this.isValueRequired = true;
 		return this;
 	}
 	
@@ -677,6 +699,18 @@ public class CmdLnItem {
 	 */
 	protected HashMap<String, CmdLnItem> getAlias() {
 		return alias;
+	}
+	
+	public boolean hasParent() {
+		if (parent == null) {
+			return false;
+		}
+		
+		if (parent instanceof CommandOP) {
+			return false;
+		}
+		
+		return true;
 	}
 	
 	/**
@@ -781,5 +815,22 @@ public class CmdLnItem {
 		return cmdLnPos;
 	}
 	
+	
+	@Override
+	public String toString() {
+		return name + "=" + values + "(alias=" + alias + 
+				", isParsed=" + isParameter + 
+				", isMandatory=" + isMandatory + 
+				", isOption=" + isOption + 
+				", isShortOption=" + isShortOption + 
+				", isParameter=" + isParameter + 
+				", isBoolean=" + isBoolean + 
+				", isValueRequired=" + isValueRequired + 
+				", isHiddenInHelp=" + isHiddenInHelp + 
+				", isMultiValueItem=" + isMultiValueItem + 
+				", hasParent=" + hasParent() + 
+				(hasParent() ? ", parent=" + getParent().getName() : "") + 
+				")";
+	}
 
 }

@@ -4,7 +4,6 @@
 package ch.thn.commandop.validator;
 
 import ch.thn.commandop.CmdLnItem;
-import ch.thn.commandop.CommandOPValidator;
 
 /**
  * @author thomas

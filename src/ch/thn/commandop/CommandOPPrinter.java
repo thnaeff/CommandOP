@@ -12,6 +12,7 @@ import java.util.LinkedList;
  */
 public class CommandOPPrinter {
 	
+	private static final String ALIGN_LOCATION = "##";
 	
 	private CommandOP cmdop = null;
 	
@@ -91,9 +92,11 @@ public class CommandOPPrinter {
 		
 		HashMap<String, CmdLnItem> items = cmdop.getItems();
 		
-		StringBuilder defineditems = new StringBuilder();
-		
+		LinkedList<StringBuilder> lines = new LinkedList<StringBuilder>();
 		LinkedList<CmdLnItem> flatList = CommandOPTools.createFlatList(items);
+		
+		int longestLine = 0;
+		
 		
 		for (CmdLnItem item : flatList) {
 			
@@ -111,76 +114,100 @@ public class CommandOPPrinter {
 //				}
 //			}
 			
+			StringBuilder line = new StringBuilder();
+			
 //			if (!flat) {
 //				defineditems.append(item.getCmdLnPos() + ". ");
 //			}
 			
 			if (flat) {
 				if (item.isOption()) {
-					defineditems.append(CommandOPTools.OPTIONSPREFIX_LONG);
+					line.append(CommandOPTools.OPTIONSPREFIX_LONG);
 				} else if (item.isShortOption()) {
-					defineditems.append(CommandOPTools.OPTIONSPREFIX_SHORT);
+					line.append(CommandOPTools.OPTIONSPREFIX_SHORT);
 				}
 			} else {
 				for (int i = 0; i < item.getLevel(); i++) {
-					defineditems.append("\t");
+					line.append("   ");
 				}
 			}
 			
 			if (item.isMandatory()) {
-				defineditems.append("*");
+				line.append("*");
 			}
 			
-			defineditems.append(item.getName());
+			line.append(item.getName());
 			
 			if (withValue) {
-				defineditems.append(CommandOPTools.ITEM_VALUE_SEPARATOR);
+				line.append(CommandOPTools.ITEM_VALUE_SEPARATOR);
 				
 				//Whether the item is a multi value item or not, all the values
 				//are shown. If its not a multi value item, there is only one value to show
 				for (int i = 0; i < item.getNumOfValues(); i++) {
-					defineditems.append(item.getValue(i));
+					line.append(item.getValue(i));
 					
 					if (i < item.getNumOfValues() - 1) {
-						defineditems.append(" ");
+						line.append(" ");
 					}
 				}
 				
-				defineditems.append(" (" + item.getDefaultValue() + ")");
+				if (item.getDefaultValue() != null) {
+					line.append(" (" + item.getDefaultValue() + ")");
+				}
 			}
 			
 			String commaToAppend = null;
 			if (item.hasAlias()) {
-				defineditems.append(" [");
+				line.append(" [");
 				
 				for (CmdLnItem alias : item.getAlias().values()) {
 					
 					if (commaToAppend != null) {
-						defineditems.append(commaToAppend);
+						line.append(commaToAppend);
 						commaToAppend = null;
 					}
 					
-					defineditems.append(alias.getName());
+					line.append(alias.getName());
 					commaToAppend = ", ";
 				}
 				
-				defineditems.append("] ");
+				line.append("] ");
+			}
+			
+			//The line length has to be taken before the comment is added
+			if (line.length() > longestLine) {
+				longestLine = line.length();
 			}
 			
 			if (!flat) {
-				defineditems.append("\t\t" + item.getDescription());
+				String desc = item.getDescription();
+				
+				if (desc != null && desc.length() > 0) {
+					line.append(ALIGN_LOCATION + item.getDescription());
+				}
 			}
 			
-			if (flat) {
-				defineditems.append(" ");
-			} else {
-				defineditems.append("\n");
-			}
-			
+			lines.add(line);
 			
 		}
 		
-		return defineditems.toString();
+		
+		StringBuilder output = new StringBuilder();
+		
+		for (StringBuilder sb : lines) {
+			
+			if (flat) {
+				output.append(sb.toString());
+				output.append(" ");
+			} else {
+				String space = CommandOPTools.makeRightAlignSpace(longestLine + 5, sb.indexOf(ALIGN_LOCATION), true);
+				output.append(sb.toString().replace(ALIGN_LOCATION, space));
+				output.append("\n");
+			}
+			
+		}
+		
+		return output.toString();
 	}
 	
 	

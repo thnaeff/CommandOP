@@ -7,7 +7,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import ch.thn.commandop.CmdLnItem;
-import ch.thn.commandop.CommandOPValidator;
 
 /**
  * @author thomas
