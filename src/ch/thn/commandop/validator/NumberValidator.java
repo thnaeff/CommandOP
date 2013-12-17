@@ -3,7 +3,7 @@
  */
 package ch.thn.commandop.validator;
 
-import ch.thn.commandop.CmdLnItem;
+import ch.thn.commandop.CmdLnBase;
 
 /**
  * @author thomas
@@ -12,7 +12,7 @@ import ch.thn.commandop.CmdLnItem;
 public class NumberValidator extends CommandOPValidator {
 
 	@Override
-	public boolean validate(CmdLnItem item, String newValue, int multiValuePos) {
+	public boolean validate(CmdLnBase item, String newValue, int multiValuePos) {
 		
 		if (newValue == null) {
 			return false;

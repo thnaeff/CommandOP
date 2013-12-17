@@ -2,8 +2,8 @@ package ch.thn.commandop.test;
 
 import java.util.LinkedList;
 
-import ch.thn.commandop.CommandOPException;
-import ch.thn.commandop.CmdLnItem;
+import ch.thn.commandop.CmdLnValue;
+import ch.thn.commandop.CommandOPError;
 import ch.thn.commandop.CommandOP;
 import ch.thn.commandop.CommandOPFactory;
 import ch.thn.commandop.CommandOPGroup;
@@ -50,7 +50,7 @@ public class CommandOPTest {
 						)
 				);
 		
-		cmdop.addOption("option3", "").setAsMultiValueItem(true)
+		cmdop.addOption("option3", "").setAsMultiValueItem()
 				.addParameters(
 				CommandOPFactory.newParameter("param31", "")
 					.addParameters(
@@ -79,7 +79,7 @@ public class CommandOPTest {
 					System.err.println(s);
 				}
 			}
-		} catch (CommandOPException e) {
+		} catch (CommandOPError e) {
 			e.printStackTrace();
 		}
 		
@@ -90,18 +90,18 @@ public class CommandOPTest {
 		System.out.println("preParsed: " + printer.getPreParsed(true));
 		System.out.println(printer.getPreParsed(false));
 		
-		System.out.println("definedItems: " + printer.getDefinedItems(true, false, false));
-		System.out.println(printer.getDefinedItems(false, true, false));
+		System.out.println("definedItems: " + printer.getDefinedItems(true, false, false, false));
+		System.out.println(printer.getDefinedItems(false, true, false, false));
 		
 		System.out.println("------------");
 		
-		CmdLnItem item0 = cmdop.getParameter("optionless2");
+		CmdLnValue item0 = cmdop.getParameter("optionless2");
 		System.out.println(item0.getName() + "=" + item0.getValue());
 		
-		CmdLnItem item1 = cmdop.getOption("atest");
+		CmdLnValue item1 = cmdop.getOption("atest");
 		System.out.println(item1.getName() + "=" + item1.getValue());
 		
-		CmdLnItem item2 = cmdop.getOption("option2").getChild("param21").getChild("param211");
+		CmdLnValue item2 = cmdop.getOption("option2").getChild("param21").getChild("param211");
 		System.out.println(item2.getName() + "=" + item2.getValue());
 
 	}

@@ -35,26 +35,55 @@ public class PreParsedChain extends PreParsedItem {
 		
 	}
 	
+	/**
+	 * 
+	 * 
+	 * @param chain
+	 */
 	protected void setNext(PreParsedChain chain) {
 		this.next = chain;
 	}
 	
+	/**
+	 * 
+	 * 
+	 * @return
+	 */
 	public PreParsedChain getNext() {
 		return next;
 	}
 	
+	/**
+	 * 
+	 * 
+	 * @return
+	 */
 	public PreParsedChain getParent() {
 		return parent;
 	}
 	
+	/**
+	 * 
+	 * 
+	 * @return
+	 */
 	public boolean hasNext() {
 		return (next != null);
 	}
 	
+	/**
+	 * 
+	 * 
+	 * @return
+	 */
 	public boolean hasPrevious() {
 		return (parent != null);
 	}
 	
+	/**
+	 * 
+	 * 
+	 */
 	public int getChainPos() {
 		return chainPos;
 	}

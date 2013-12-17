@@ -3,7 +3,7 @@
  */
 package ch.thn.commandop.validator;
 
-import ch.thn.commandop.CmdLnItem;
+import ch.thn.commandop.CmdLnBase;
 
 /**
  * @author thomas
@@ -13,10 +13,20 @@ public abstract class CommandOPValidator {
 	
 	private String errorMessage = null;
 	
+	/**
+	 * Set an error message to describe the validation error
+	 * 
+	 * @param errorMessage
+	 */
 	protected void setErrorMessage(String errorMessage) {
 		this.errorMessage = errorMessage;
 	}
 	
+	/**
+	 * Returns the error messge which describes the validation error
+	 * 
+	 * @return
+	 */
 	public String getErrorMessage() {
 		if (errorMessage == null) {
 			return "";
@@ -29,7 +39,7 @@ public abstract class CommandOPValidator {
 	 * Validates the currently parsed item
 	 * 
 	 * @param item The actual item. The value is not yet set for this item, it is 
-	 * set when {@link #validate(CmdLnItem, String, int)} returns <code>true</code>
+	 * set when {@link #validate(CmdLnBase, String, int)} returns <code>true</code>
 	 * @param newValue This is the value which will be set for the item
 	 * @param multiValuePos This is the position of the value. If the item is not 
 	 * defined as multi-value-item, multiValuePos is always 0. If the item is defined 
@@ -37,6 +47,6 @@ public abstract class CommandOPValidator {
 	 * @return This method should return <code>true</code> if the value newValue is valid, and 
 	 * <code>false</code> if the value is not valid
 	 */
-	public abstract boolean validate(CmdLnItem item, String newValue, int multiValuePos);
+	public abstract boolean validate(CmdLnBase item, String newValue, int multiValuePos);
 
 }

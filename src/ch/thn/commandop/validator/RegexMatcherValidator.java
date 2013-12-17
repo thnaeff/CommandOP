@@ -6,7 +6,7 @@ package ch.thn.commandop.validator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import ch.thn.commandop.CmdLnItem;
+import ch.thn.commandop.CmdLnBase;
 
 /**
  * @author thomas
@@ -24,7 +24,7 @@ public class RegexMatcherValidator extends CommandOPValidator {
 	
 
 	@Override
-	public boolean validate(CmdLnItem item, String newValue, int multiValuePos) {
+	public boolean validate(CmdLnBase item, String newValue, int multiValuePos) {
 		
 		if (newValue == null) {
 			return true;

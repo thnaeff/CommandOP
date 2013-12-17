@@ -16,8 +16,8 @@ public class CommandOPFactory {
 	 * @param defaultValue
 	 * @return
 	 */
-	public static CmdLnItem newParameter(String name, String description, String defaultValue) {
-		return new CmdLnItem(name, description, defaultValue);
+	public static CmdLnParameter newParameter(String name, String description, String defaultValue) {
+		return new CmdLnParameter(name, description, defaultValue);
 	}
 	
 	/**
@@ -26,8 +26,8 @@ public class CommandOPFactory {
 	 * @param description
 	 * @return
 	 */
-	public static CmdLnItem newParameter(String name, String description) {
-		return new CmdLnItem(name, description);
+	public static CmdLnParameter newParameter(String name, String description) {
+		return new CmdLnParameter(name, description);
 	}
 	
 	/**
@@ -35,8 +35,8 @@ public class CommandOPFactory {
 	 * @param name
 	 * @return
 	 */
-	public static CmdLnItem newParameter(String name) {
-		return new CmdLnItem(name);
+	public static CmdLnParameter newParameter(String name) {
+		return new CmdLnParameter(name);
 	}
 
 }

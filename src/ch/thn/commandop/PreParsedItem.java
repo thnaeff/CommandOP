@@ -39,6 +39,10 @@ public class PreParsedItem {
 		
 	}
 	
+	public void setValue(String value) {
+		this.value = value;
+	}
+	
 	public boolean isParameter() {
 		return isParameter;
 	}

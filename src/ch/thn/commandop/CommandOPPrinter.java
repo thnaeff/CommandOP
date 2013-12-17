@@ -3,7 +3,7 @@
  */
 package ch.thn.commandop;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 
 /**
@@ -41,7 +41,7 @@ public class CommandOPPrinter {
 		while (chain != null) {
 			preparsed.append(chain.getName() + CommandOPTools.ITEM_VALUE_SEPARATOR + chain.getValue());
 			
-			if (chain.isOption()) {
+			if (chain.isOption() || chain.isShortOption()) {
 				preparsed.append(" [option]");
 			} else {
 				preparsed.append(" [param]");
@@ -73,7 +73,7 @@ public class CommandOPPrinter {
 	public String getHelpText() {
 		String s = "Command line help:\n";
 		
-		s = s + getDefinedItems(false, false, true);
+		s = s + getDefinedItems(false, false, true, true);
 		
 		return s;
 	}
@@ -85,22 +85,28 @@ public class CommandOPPrinter {
 	 * 
 	 * @param flat
 	 * @param withValue
+	 * @param withDescription
 	 * @param hideHidden
 	 * @return
 	 */
-	public String getDefinedItems(boolean flat, boolean withValue, boolean hideHidden) {
+	public String getDefinedItems(boolean flat, boolean withValue, 
+			boolean withDescription, boolean hideHidden) {
 		
-		HashMap<String, CmdLnItem> items = cmdop.getItems();
+		//Do not use cmdop.getChildren() here, because the no-option-parameters 
+		//should appear in front of the rest
+		LinkedHashMap<String, CmdLnBase> all = new LinkedHashMap<String, CmdLnBase>();
+		all.putAll(cmdop.getParameters());
+		all.putAll(cmdop.getOptions());
 		
 		LinkedList<StringBuilder> lines = new LinkedList<StringBuilder>();
-		LinkedList<CmdLnItem> flatList = CommandOPTools.createFlatList(items);
+		LinkedList<CmdLnBase> flatList = CommandOPTools.createFlatList(all);
 		
 		int longestLine = 0;
 		
 		
-		for (CmdLnItem item : flatList) {
+		for (CmdLnBase item : flatList) {
 			
-			if (hideHidden && item.isHiddenInHelp()) {
+			if (hideHidden && item.isHiddenInPrint()) {
 				continue;
 			}
 			
@@ -108,36 +114,55 @@ public class CommandOPPrinter {
 				continue;
 			}
 			
-//			if (parsedAndBooleanOnly) {
-//				if (!item.isParsed() && !item.isBoolean()) {
-//					continue;
-//				}
-//			}
-			
 			StringBuilder line = new StringBuilder();
 			
-//			if (!flat) {
-//				defineditems.append(item.getCmdLnPos() + ". ");
-//			}
-			
-			if (flat) {
-				if (item.isOption()) {
-					line.append(CommandOPTools.OPTIONSPREFIX_LONG);
-				} else if (item.isShortOption()) {
-					line.append(CommandOPTools.OPTIONSPREFIX_SHORT);
+			//Short options (only if no flat output)
+			if (!flat && item.hasAlias()) {				
+				for (CmdLnBase alias : item.getAlias().values()) {
+					if (!alias.isShortOption()) {
+						continue;
+					}
+					
+					line.append(CommandOPTools.OPTIONSPREFIX_SHORT);	
+					line.append(alias.getName());
+					line.append(", ");
 				}
-			} else {
+			}
+			
+			//Prefix and insets
+			if (item.isOption()) {
+				line.append(CommandOPTools.OPTIONSPREFIX_LONG);
+			} else if (item.isShortOption()) {
+				line.append(CommandOPTools.OPTIONSPREFIX_SHORT);
+			} else if (item.isParameter() && !flat) {
+				if (item.hasParent()) {
+					line.append(" ");
+				}
+				
+				//Insets for higher levels
 				for (int i = 0; i < item.getLevel(); i++) {
 					line.append("   ");
 				}
 			}
 			
-			if (item.isMandatory()) {
-				line.append("*");
+			//Optional
+			if (!item.isMandatory() && item.isParameter()) {
+				line.append("[");
 			}
+			
+//			//Mandatory
+//			if (item.isMandatory()) {
+//				line.append("*");
+//			}
 			
 			line.append(item.getName());
 			
+			//Optional
+			if (!item.isMandatory() && item.isParameter()) {
+				line.append("]");
+			}
+			
+			//Value
 			if (withValue) {
 				line.append(CommandOPTools.ITEM_VALUE_SEPARATOR);
 				
@@ -156,22 +181,30 @@ public class CommandOPPrinter {
 				}
 			}
 			
-			String commaToAppend = null;
+			//Aliases
 			if (item.hasAlias()) {
-				line.append(" [");
+				String commaToAppend = null;
+				StringBuilder sbAliases = new StringBuilder();
 				
-				for (CmdLnItem alias : item.getAlias().values()) {
+				for (CmdLnBase alias : item.getAlias().values()) {
+					if (alias.isShortOption()) {
+						continue;
+					}
 					
 					if (commaToAppend != null) {
-						line.append(commaToAppend);
+						sbAliases.append(commaToAppend);
 						commaToAppend = null;
 					}
 					
-					line.append(alias.getName());
+					sbAliases.append(alias.getName());
 					commaToAppend = ", ";
 				}
 				
-				line.append("] ");
+				if (sbAliases.length() > 0) {
+					line.append(" [");
+					line.append(sbAliases);
+					line.append("] ");
+				}
 			}
 			
 			//The line length has to be taken before the comment is added
@@ -179,7 +212,8 @@ public class CommandOPPrinter {
 				longestLine = line.length();
 			}
 			
-			if (!flat) {
+			//Description
+			if (!flat && withDescription) {
 				String desc = item.getDescription();
 				
 				if (desc != null && desc.length() > 0) {
@@ -194,14 +228,18 @@ public class CommandOPPrinter {
 		
 		StringBuilder output = new StringBuilder();
 		
+		//Insets for descriptions
 		for (StringBuilder sb : lines) {
 			
 			if (flat) {
 				output.append(sb.toString());
 				output.append(" ");
-			} else {
+			} else if (withDescription) {
 				String space = CommandOPTools.makeRightAlignSpace(longestLine + 5, sb.indexOf(ALIGN_LOCATION), true);
 				output.append(sb.toString().replace(ALIGN_LOCATION, space));
+				output.append("\n");
+			} else {
+				output.append(sb.toString());
 				output.append("\n");
 			}
 			

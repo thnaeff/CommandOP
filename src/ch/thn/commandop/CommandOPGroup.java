@@ -27,7 +27,7 @@ public class CommandOPGroup {
 	
 	private int mode = -1;
 	
-	private LinkedHashMap<String, CmdLnItem> items = null;
+	private LinkedHashMap<String, CmdLnBase> items = null;
 	
 	private CommandOP cmdop = null;
 	
@@ -44,7 +44,7 @@ public class CommandOPGroup {
 		this.mode = mode;
 		this.cmdop = cmdop;
 		
-		items = new LinkedHashMap<String, CmdLnItem>();
+		items = new LinkedHashMap<String, CmdLnBase>();
 		
 	}
 	
@@ -72,7 +72,7 @@ public class CommandOPGroup {
 	 * @param item
 	 * @return
 	 */
-	public boolean addMember(CmdLnItem item) {
+	public boolean addMember(CmdLnBase item) {
 		if (items.containsKey(item.getName())) {
 			return false;
 		}
@@ -90,27 +90,26 @@ public class CommandOPGroup {
 	 * 
 	 * @param itemName
 	 * @return
+	 * @throws CommandOPError
 	 */
 	public boolean addMember(String itemName) {
 		
-		LinkedList<CmdLnItem> flatList = CommandOPTools.createFlatList(cmdop.getItems());
+		LinkedList<CmdLnBase> flatList = CommandOPTools.createFlatList(cmdop.getChildren());
 		
-		CmdLnItem itemToAdd = null;
+		CmdLnBase itemToAdd = null;
 
-		for (CmdLnItem item : flatList) {
+		for (CmdLnBase item : flatList) {
 			if (item.getName().equals(itemName)) {
 				if (itemToAdd == null) {
 					itemToAdd = item;
 				} else {
-					System.err.println("CommandOP> Adding item with name '" + itemName + "' to group " + name + " failed. Ambiguous item name.");
-					return false;
+					throw new CommandOPError("Adding item with name '" + itemName + "' to group " + name + " failed. Ambiguous item name.");
 				}
 			}
 		}
 		
 		if (itemToAdd == null) {
-			System.err.println("CommandOP> Adding item with name '" + itemName + "' to group " + name + " failed. Item with this name not found.");
-			return false;
+			throw new CommandOPError("Adding item with name '" + itemName + "' to group " + name + " failed. Item with this name not found.");
 		}
 		
 		items.put(itemToAdd.getName(), itemToAdd);
@@ -119,9 +118,20 @@ public class CommandOPGroup {
 		
 	}
 	
-	
-	protected LinkedHashMap<String, CmdLnItem> getItems() {
+	/**
+	 * 
+	 * 
+	 * @return
+	 */
+	protected LinkedHashMap<String, CmdLnBase> getItems() {
 		return items;
 	}
 
+	
+	@Override
+	public String toString() {
+		return name + ": " + items;
+	}
+	
+	
 }

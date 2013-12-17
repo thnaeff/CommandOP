@@ -3,7 +3,7 @@
  */
 package ch.thn.commandop.validator;
 
-import ch.thn.commandop.CmdLnItem;
+import ch.thn.commandop.CmdLnBase;
 
 /**
  * @author thomas
@@ -25,7 +25,7 @@ public class StringLengthValidator extends CommandOPValidator {
 	}
 
 	@Override
-	public boolean validate(CmdLnItem item, String newValue, int multiValuePos) {
+	public boolean validate(CmdLnBase item, String newValue, int multiValuePos) {
 		
 		if (minLength != 0 && newValue.length() < minLength) {
 			setErrorMessage("Value too short (minimum " + minLength + " characters needed).");

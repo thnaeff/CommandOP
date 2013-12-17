@@ -5,6 +5,7 @@ package ch.thn.commandop;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.Vector;
 
 import ch.thn.commandop.validator.CommandOPValidator;
@@ -13,19 +14,19 @@ import ch.thn.commandop.validator.CommandOPValidator;
  * @author thomas
  *
  */
-public class CmdLnItem {
+public abstract class CmdLnBase {
 	
 	//TODO allow multi var items, like "server 65001 localhost"
 	//maybe look up variables from the parameter until the next known option/parameter?
 	
 	
-	private CmdLnItem parent = null;
-	private CmdLnItem aliasOf = null;	//The item of which this item is the alias of
+	private CmdLnBase parent = null;
+	private CmdLnBase aliasOf = null;	//The item of which this item is the alias of
 	
-	private CommandOPValidator validator = null;
+	protected CommandOPValidator validator = null;
 	
-	private LinkedHashMap<String, CmdLnItem> alias = null;		//The items which are set as alias
-	private LinkedHashMap<String, CmdLnItem> children = null;
+	protected LinkedHashMap<String, CmdLnBase> alias = null;		//The items which are set as alias
+	protected LinkedHashMap<String, CmdLnBase> children = null;
 	
 	private String description = null;
 	private String name = null;
@@ -34,18 +35,18 @@ public class CmdLnItem {
 	private Vector<String> values = null;
 	
 	private boolean isParsed = false;
-	private boolean isMandatory = false;
+	protected boolean isMandatory = false;
 	private boolean isOption = false;
 	private boolean isShortOption = false;
 	private boolean isParameter = false;
-	private boolean isBoolean = false;
-	private boolean isValueRequired = false;
-	private boolean isHiddenInHelp = false;
-	private boolean isMultiValueItem = false;
+	protected boolean isBoolean = false;
+	protected boolean isValueRequired = false;
+	protected boolean isHiddenInPrint = false;
+	protected boolean isMultiValueItem = false;
 	
 	private int level = 0;
-	private int multiValueMin = 0;
-	private int multiValueMax = 0;
+	protected int multiValueMin = 0;
+	protected int multiValueMax = 0;
 	private int cmdLnPos = 0;
 	
 	
@@ -55,14 +56,14 @@ public class CmdLnItem {
 	 * @param defaultValue
 	 * @param description
 	 */
-	public CmdLnItem(String name, String defaultValue, String description) {
+	protected CmdLnBase(String name, String defaultValue, String description) {
 		this.name = name;
 		this.defaultValue = defaultValue;
 		this.description = description;
 		
 		values = new Vector<String>();
-		children = new LinkedHashMap<String, CmdLnItem>();
-		alias = new LinkedHashMap<String, CmdLnItem>();
+		children = new LinkedHashMap<String, CmdLnBase>();
+		alias = new LinkedHashMap<String, CmdLnBase>();
 		
 	}
 	
@@ -71,7 +72,7 @@ public class CmdLnItem {
 	 * @param name
 	 * @param description
 	 */
-	public CmdLnItem(String name, String description) {
+	protected CmdLnBase(String name, String description) {
 		this(name, null, description);
 	}
 	
@@ -79,14 +80,14 @@ public class CmdLnItem {
 	 * 
 	 * @param name
 	 */
-	public CmdLnItem(String name) {
+	protected CmdLnBase(String name) {
 		this(name, null, null);
 	}
 	
 	/**
 	 * 
 	 */
-	public CmdLnItem() {
+	protected CmdLnBase() {
 		this(null, null);
 	}
 	
@@ -95,7 +96,7 @@ public class CmdLnItem {
 	 * 
 	 * @param parent
 	 */
-	protected void setParent(CmdLnItem parent) {
+	protected void setParent(CmdLnBase parent) {
 		this.parent = parent;
 		
 		adjustLevel();
@@ -106,7 +107,7 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	public CmdLnItem getParent() {	
+	protected CmdLnBase getParent() {	
 		if (parent instanceof CommandOP) {
 			return null;
 		}
@@ -120,7 +121,7 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	protected CmdLnItem getParentInternal() {
+	protected CmdLnBase getParentInternal() {
 		return parent;
 	}
 	
@@ -130,7 +131,7 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	public int getLevel() {
+	protected int getLevel() {
 		return level;
 	}
 	
@@ -140,16 +141,15 @@ public class CmdLnItem {
 	 * @param items
 	 * @return
 	 */
-	public CmdLnItem addParameters(CmdLnItem... items) {
+	protected CmdLnParameter addParameters(CmdLnParameter... items) {
 		
-		for (CmdLnItem item : items) {
+		for (CmdLnParameter item : items) {
 			children.put(item.getName(), item);
 			item.setAsParameter();
 			item.setParent(this);
 		}
 		
-		return this;
-		
+		return (CmdLnParameter) this;
 	}
 	
 	/**
@@ -160,8 +160,8 @@ public class CmdLnItem {
 	 * @param description
 	 * @return
 	 */
-	public CmdLnItem addParameter(String name, String defaultValue, String description) {
-		CmdLnItem child = new CmdLnItem(name, defaultValue, description);
+	protected CmdLnParameter addParameter(String name, String defaultValue, String description) {
+		CmdLnParameter child = new CmdLnParameter(name, defaultValue, description);
 		children.put(name, child);
 		child.setAsParameter();
 		child.setParent(this);
@@ -175,37 +175,8 @@ public class CmdLnItem {
 	 * @param description
 	 * @return
 	 */
-	public CmdLnItem addParameter(String name, String description) {
+	protected CmdLnParameter addParameter(String name, String description) {
 		return addParameter(name, null, description);
-	}
-	
-	/**
-	 * Adds an alias to this item. An alias can be used instead of the 
-	 * item's name.
-	 * 
-	 * @param aliasName
-	 * @return
-	 */
-	public CmdLnItem addAlias(String aliasName) {
-		
-		CmdLnItem item = null;
-		
-		if (getParentInternal() instanceof CommandOP) {
-			//It's an option, so its parent is ComandOP
-			item = ((CommandOP)getParentInternal()).addOption(aliasName, null);
-		} else {
-			//It's a parameter, so its parent is not ComandOP
-			item = getParentInternal().addParameter(aliasName, null);
-		}
-		
-		item.setAliasOf(this);
-		
-		alias.put(aliasName, item);
-		
-		//Return this item and not the alias-item, because all 
-		//settings should be done on the original item. The 
-		//alias only holds the alias-name
-		return this;
 	}
 	
 	/**
@@ -214,7 +185,7 @@ public class CmdLnItem {
 	 * 
 	 * @param aliasOf
 	 */
-	protected void setAliasOf(CmdLnItem aliasOf) {
+	protected void setAliasOf(CmdLnBase aliasOf) {
 		this.aliasOf = aliasOf;
 	}
 	
@@ -223,7 +194,7 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	public CmdLnItem getAliasOf() {
+	protected CmdLnBase getAliasOf() {
 		return aliasOf;
 	}
 		
@@ -238,7 +209,7 @@ public class CmdLnItem {
 			level = 0;
 		}
 		
-		for (CmdLnItem child : children.values()) {
+		for (CmdLnBase child : children.values()) {
 			child.adjustLevel();
 		}
 		
@@ -250,7 +221,7 @@ public class CmdLnItem {
 	 * @param childName
 	 * @return
 	 */
-	public boolean hasChild(String childName) {
+	protected boolean hasChild(String childName) {
 		return children.containsKey(childName);
 	}
 	
@@ -259,7 +230,7 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	public boolean hasChildren() {
+	protected boolean hasChildren() {
 		return !children.isEmpty();
 	}
 	
@@ -271,17 +242,17 @@ public class CmdLnItem {
 	 * @param childName
 	 * @return
 	 */
-	public CmdLnItem getChild(String childName) {
+	protected CmdLnValue getChild(String childName) {
 		if (!children.containsKey(childName)) {
-			return null;
+			throw new CommandOPError("Child parameter '" + childName + "' is not defined in '" + getName() + "'.");
 		}
 		
-		CmdLnItem item = children.get(childName);
+		CmdLnBase item = children.get(childName);
 				
 		if (item.isAlias()) {
-			return item.getAliasOf();
+			return (CmdLnValue) item.getAliasOf();
 		} else {
-			return item;
+			return (CmdLnValue) item;
 		}
 	}
 	
@@ -292,7 +263,7 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	protected HashMap<String, CmdLnItem> getChildren() {
+	protected LinkedHashMap<String, CmdLnBase> getChildren() {
 		return children;
 	}
 	
@@ -301,7 +272,7 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	public String getName() {
+	protected String getName() {
 		return name;
 	}
 	
@@ -312,7 +283,7 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	public String getValue() {
+	protected String getValue() {
 		return getValue(0);
 	}
 	
@@ -323,7 +294,7 @@ public class CmdLnItem {
 	 * @param multiValuePos
 	 * @return
 	 */
-	public String getValue(int multiValuePos) {
+	protected String getValue(int multiValuePos) {
 		if (aliasOf != null) {
 			//This item is only the alias of another item
 			return aliasOf.getValue(multiValuePos);
@@ -350,7 +321,7 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	public String getDefaultValue() {
+	protected String getDefaultValue() {
 		return defaultValue;
 	}
 	
@@ -360,7 +331,7 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	public String getDescription() {
+	protected String getDescription() {
 		return description;
 	}
 	
@@ -415,8 +386,9 @@ public class CmdLnItem {
 	private String setValue(String value, int multiValuePos) {
 
 		if (aliasOf != null) {
-			//This item is only the alias of another item
-			return aliasOf.setValue(value, multiValuePos);
+			//This item is the alias of another item
+			aliasOf.setValue(value, multiValuePos);
+			return null;
 		}
 				
 		if (isMultiValueItem) {
@@ -469,20 +441,6 @@ public class CmdLnItem {
 	}
 	
 	/**
-	 * Sets the mandatory-flag.<br>
-	 * A mandatory item needs to be given (only the item, not the 
-	 * value. See isValueRequired() for that matter). The flag of 
-	 * a mandatory item is only checked if its parent item is given
-	 * too.
-	 * 
-	 * @return
-	 */
-	public CmdLnItem setMandatory() {
-		isMandatory = true;
-		return this;
-	}
-	
-	/**
 	 * Returns the status of the mandatory-flag.<br>
 	 * A mandatory item needs to be given (only the item, not the 
 	 * value. See isValueRequired() for that matter). The flag of 
@@ -491,20 +449,8 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	public boolean isMandatory() {
+	protected boolean isMandatory() {
 		return isMandatory;
-	}
-	
-	/**
-	 * Sets the status of the boolean-flag.<br>
-	 * A boolean item behaves in a special way when 
-	 * setting or getting its value.
-	 * 
-	 * @return
-	 */
-	public CmdLnItem setAsBoolean() {
-		isBoolean = true;
-		return this;
 	}
 	
 	/**
@@ -514,7 +460,7 @@ public class CmdLnItem {
 	 * 	 * 
 	 * @return
 	 */
-	public boolean isBoolean() {
+	protected boolean isBoolean() {
 		return isBoolean;
 	}
 	
@@ -524,7 +470,7 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	public boolean isChild() {
+	protected boolean isChild() {
 		if (parent instanceof CommandOP) {
 			return false;
 		} else {
@@ -535,11 +481,14 @@ public class CmdLnItem {
 	/**
 	 * Sets the option-flag which indicates that this item 
 	 * is an option (an item with the long prefix {@link CommandOPTools}.OPTIONSPREFIX_LONG)
+	 * 
+	 * @return
 	 */
-	protected void setAsOption() {
+	protected CmdLnBase setAsOption() {
 		isOption = true;
 		isShortOption = false;
 		isParameter = false;
+		return this;
 	}
 	
 	/**
@@ -548,18 +497,23 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	public boolean isOption() {
+	protected boolean isOption() {
 		return isOption;
 	}
 	
 	/**
 	 * Sets the short-option-flag which indicates that this item 
-	 * is a short-option (an item with the short prefix {@link CommandOPTools}.OPTIONSPREFIX_SHORT)
+	 * is a short-option (an item with the short prefix 
+	 * {@link CommandOPTools}.OPTIONSPREFIX_SHORT). Short options can also be 
+	 * combined, for example the short options 'a' and 'b' can be written as "-ab".
+	 * 
+	 * @return
 	 */
-	protected void setAsShortOption() {
+	protected CmdLnBase setAsShortOption() {
 		isOption = false;
 		isShortOption = true;
 		isParameter = false;
+		return this;
 	}
 	
 	/**
@@ -568,18 +522,21 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	public boolean isShortOption() {
+	protected boolean isShortOption() {
 		return isShortOption;
 	}
 	
 	/**
 	 * Sets the parameter-flag which indicates that this item 
 	 * is a parameter (an item with the no prefix)
+	 * 
+	 * @return
 	 */
-	protected void setAsParameter() {
+	protected CmdLnBase setAsParameter() {
 		isOption = false;
 		isShortOption = false;
 		isParameter = true;
+		return this;
 	}
 	
 	/**
@@ -588,7 +545,7 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	public boolean isParameter() {
+	protected boolean isParameter() {
 		return isParameter;
 	}
 	
@@ -600,7 +557,7 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	public boolean isParsed() {
+	protected boolean isParsed() {
 		return isParsed;
 	}
 	
@@ -612,45 +569,19 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	public boolean isValueRequired() {
+	protected boolean isValueRequired() {
 		return isValueRequired;
-	}
-	
-	/**
-	 * Sets the status of the value-required-flag.<br>
-	 * An item which requires a value has to be given at least with 
-	 * an item-value-separator ({@link CommandOPTools}.ITEM_VALUE_SEPARATOR), 
-	 * followed by nothing (an empty string) or any other string.
-	 * 
-	 * @return
-	 */
-	public CmdLnItem setValueRequired() {
-		this.isValueRequired = true;
-		return this;
 	}
 	
 	/**
 	 * Returns the status of the hidden-flag.<br>
 	 * If an item is set to be hidden, it does not show up when 
-	 * printing the help-text ({@link CommandOPPrinter}.getHelpText()).
+	 * printing with the ({@link CommandOPPrinter}).
 	 * 
 	 * @return
 	 */
-	public boolean isHiddenInHelp() {
-		return isHiddenInHelp;
-	}
-	
-	/**
-	 * Sets the status of the hidden-flag.<br>
-	 * If an item is set to be hidden, it does not show up when 
-	 * printing the help-text ({@link CommandOPPrinter}.getHelpText()).
-	 * 
-	 * @param isHiddenInHelp
-	 * @return
-	 */
-	public CmdLnItem setHiddenInHelp(boolean isHiddenInHelp) {
-		this.isHiddenInHelp = isHiddenInHelp;
-		return this;
+	protected boolean isHiddenInPrint() {
+		return isHiddenInPrint;
 	}
 	
 	/**
@@ -658,7 +589,7 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	public boolean isAlias() {
+	protected boolean isAlias() {
 		return (aliasOf != null);
 	}
 	
@@ -667,7 +598,7 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	public boolean hasAlias() {
+	protected boolean hasAlias() {
 		return (alias.size() > 0);
 	}
 	
@@ -677,7 +608,7 @@ public class CmdLnItem {
 	 * @param aliasName
 	 * @return
 	 */
-	public boolean hasAlias(String aliasName) {
+	protected boolean hasAlias(String aliasName) {
 		return (alias.containsKey(aliasName));
 	}
 	
@@ -688,7 +619,7 @@ public class CmdLnItem {
 	 * @param aliasName
 	 * @return
 	 */
-	public CmdLnItem getAlias(String aliasName) {
+	protected CmdLnBase getAlias(String aliasName) {
 		return alias.get(aliasName);
 	}
 	
@@ -697,11 +628,16 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	protected HashMap<String, CmdLnItem> getAlias() {
+	protected HashMap<String, CmdLnBase> getAlias() {
 		return alias;
 	}
 	
-	public boolean hasParent() {
+	/**
+	 * 
+	 * 
+	 * @return
+	 */
+	protected boolean hasParent() {
 		if (parent == null) {
 			return false;
 		}
@@ -714,52 +650,14 @@ public class CmdLnItem {
 	}
 	
 	/**
-	 * Sets the validator for this item. The validator is called when 
-	 * the item is processed.
-	 * 
-	 * @param validator
-	 * @return
-	 */
-	public CmdLnItem setValidator(CommandOPValidator validator) {
-		this.validator = validator;
-		return this;
-	}
-	
-	/**
-	 * Defines this item as a multi-value-item. If an item is defined 
-	 * as such, all the command line arguments which follow the item are 
-	 * used as values, until the next defined item appears.
-	 * 
-	 * @param isMultiValueItem
-	 * @return
-	 */
-	public CmdLnItem setAsMultiValueItem(boolean isMultiValueItem) {
-		this.isMultiValueItem = isMultiValueItem;
-		return this;
-	}
-	
-	/**
 	 * Returns true if this item is defined as a multi-value-item. If an item is defined 
 	 * as such, all the command line arguments which follow the item are 
 	 * used as values, until the next defined item appears.
 	 * 
 	 * @return
 	 */
-	public boolean isMultiValueItem() {
+	protected boolean isMultiValueItem() {
 		return isMultiValueItem;
-	}
-	
-	/**
-	 * Defines how many values are required/possible. 
-	 * 
-	 * @param min
-	 * @param max
-	 * @return
-	 */
-	public CmdLnItem setMultiValuesRange(int min, int max) {
-		multiValueMin = min;
-		multiValueMax = max;
-		return this;
 	}
 	
 	/**
@@ -767,7 +665,7 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	public int getMultiValuesRangeMax() {
+	protected int getMultiValuesRangeMax() {
 		return multiValueMax;
 	}
 	
@@ -776,7 +674,7 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	public int getMultiValuesRangeMin() {
+	protected int getMultiValuesRangeMin() {
 		return multiValueMin;
 	}
 	
@@ -786,7 +684,7 @@ public class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	public int getNumOfValues() {
+	protected int getNumOfValues() {
 		if (values.size() == 0) {
 			//The default value (or null if no value is set) is always there
 			return 1;
@@ -811,26 +709,104 @@ public class CmdLnItem {
 	 * 	 * 
 	 * @return
 	 */
-	public int getCmdLnPos() {
+	protected int getCmdLnPos() {
 		return cmdLnPos;
+	}
+	
+	/**
+	 * 
+	 * 
+	 * @return
+	 */
+	protected CmdLnBase getNextItem() {
+		if (parent == null) {
+			return null;
+		}
+		
+		LinkedList<CmdLnBase> list = CommandOPTools.createFlatList(parent.getChildren());
+		
+		int index = 0;
+		
+		if (isAlias()) {
+			index = list.indexOf(getAliasOf()) + 1;
+		} else {
+			index = list.indexOf(this) + 1;
+		}
+		
+		//Skip aliases
+		while (index < list.size() && list.get(index).isAlias()) {
+			index++;
+		}
+		
+		if (list.size() > index && index >= 0) {
+			return list.get(index);
+		}
+		
+//		//Continue with its children
+//		if (children.size() > 0) {
+//			CmdLnBase b = children.values().iterator().next();
+//			if (b.isAlias()) {
+//				return b.getAliasOf();
+//			} else {
+//				return b;
+//			}
+//		}
+		
+		return null;
+	}
+	
+	/**
+	 * 
+	 * 
+	 * @return
+	 */
+	protected CmdLnBase getPreviousItem() {
+		if (parent == null) {
+			return null;
+		}
+		
+		LinkedHashMap<String, CmdLnBase> parentChildren = parent.getChildren();
+		
+		LinkedList<CmdLnBase> list = new LinkedList<CmdLnBase>(parentChildren.values());
+
+		int index = 0;
+		
+		if (isAlias()) {
+			index = list.indexOf(getAliasOf()) - 1;
+		} else {
+			index = list.indexOf(this) - 1;
+		}
+		
+		//Skip aliases
+		while (index > 0 && list.get(index).isAlias()) {
+			index--;
+		}
+		
+		if (list.size() > index && index >= 0) {
+			return list.get(index);
+		}
+		
+		return null;
 	}
 	
 	
 	@Override
 	public String toString() {
-		return name + "=" + values + "(alias=" + alias + 
-				", isParsed=" + isParameter + 
-				", isMandatory=" + isMandatory + 
-				", isOption=" + isOption + 
-				", isShortOption=" + isShortOption + 
-				", isParameter=" + isParameter + 
-				", isBoolean=" + isBoolean + 
-				", isValueRequired=" + isValueRequired + 
-				", isHiddenInHelp=" + isHiddenInHelp + 
-				", isMultiValueItem=" + isMultiValueItem + 
-				", hasParent=" + hasParent() + 
-				(hasParent() ? ", parent=" + getParent().getName() : "") + 
-				")";
+//		return name + "=" + values + "(alias=" + alias + 
+//				", isParsed=" + isParameter + 
+//				", isMandatory=" + isMandatory + 
+//				", isOption=" + isOption + 
+//				", isShortOption=" + isShortOption + 
+//				", isParameter=" + isParameter + 
+//				", isBoolean=" + isBoolean + 
+//				", isValueRequired=" + isValueRequired + 
+//				", isHiddenInHelp=" + isHiddenInPrint + 
+//				", isMultiValueItem=" + isMultiValueItem + 
+//				", hasParent=" + hasParent() + 
+//				(hasParent() ? ", parent=" + getParent().getName() : "") + 
+//				")";
+		
+		return name + "=" + values + "(alias=" + alias + ")";
 	}
 
 }

@@ -17,12 +17,22 @@ public class CommandOPTools {
 	public final static String OPTIONSPREFIX_SHORT = "-";
 	public final static String OPTIONSPREFIX_LONG = OPTIONSPREFIX_SHORT + OPTIONSPREFIX_SHORT;
 	
-	
+	/**
+	 * 
+	 * 
+	 * @param optionString
+	 * @return
+	 */
 	public static String removeOptionPrefix(String optionString) {
 		return optionString.replaceAll("^[" + OPTIONSPREFIX_SHORT + "]{1}", "").replaceAll("^[" + OPTIONSPREFIX_LONG + "]{1}", "");
 	}
 	
-	
+	/**
+	 * 
+	 * 
+	 * @param argsString
+	 * @return
+	 */
 	public static boolean isOption(String argsString) {
 		if (argsString == null) {
 			return false;
@@ -31,6 +41,12 @@ public class CommandOPTools {
 		return (argsString.startsWith(OPTIONSPREFIX_LONG));
 	}
 	
+	/**
+	 * 
+	 * 
+	 * @param argsString
+	 * @return
+	 */
 	public static boolean isShortOption(String argsString) {
 		if (argsString == null) {
 			return false;
@@ -39,7 +55,12 @@ public class CommandOPTools {
 		return (argsString.startsWith(OPTIONSPREFIX_SHORT) && !argsString.startsWith(OPTIONSPREFIX_LONG));
 	}
 	
-	
+	/**
+	 * 
+	 * 
+	 * @param argsString
+	 * @return
+	 */
 	public static String getOption(String argsString) {
 		if (isOption(argsString) || isShortOption(argsString)) {
 			return getName(removeOptionPrefix(argsString));
@@ -48,7 +69,12 @@ public class CommandOPTools {
 		}
 	}
 	
-	
+	/**
+	 * 
+	 * 
+	 * @param argsString
+	 * @return
+	 */
 	public static String getOptionValue(String argsString) {
 		if (isOption(argsString) || isShortOption(argsString)) {
 			return getValue(removeOptionPrefix(argsString));
@@ -57,12 +83,22 @@ public class CommandOPTools {
 		}
 	}
 	
-	
+	/**
+	 * 
+	 * 
+	 * @param argsString
+	 * @return
+	 */
 	public static boolean isParameter(String argsString) {
 		return !isOption(argsString) && !isShortOption(argsString);
 	}
 	
-	
+	/**
+	 * 
+	 * 
+	 * @param argsString
+	 * @return
+	 */
 	public static String getParameter(String argsString) {
 		if (isParameter(argsString)) {
 			return getName(argsString);
@@ -71,7 +107,12 @@ public class CommandOPTools {
 		}
 	}
 	
-	
+	/**
+	 * 
+	 * 
+	 * @param argsString
+	 * @return
+	 */
 	public static String getParameterValue(String argsString) {
 		if (isParameter(argsString)) {
 			return getValue(argsString);
@@ -80,7 +121,12 @@ public class CommandOPTools {
 		}
 	}	
 	
-	
+	/**
+	 * 
+	 * 
+	 * @param argsString
+	 * @return
+	 */
 	private static String getName(String argsString) {
 		if (argsString.contains(ITEM_VALUE_SEPARATOR)) {
 			//Returns everything in front of the first ITEM_VALUE_SEPARATOR
@@ -90,7 +136,12 @@ public class CommandOPTools {
 		}
 	}
 	
-	
+	/**
+	 * 
+	 * 
+	 * @param argsString
+	 * @return
+	 */
 	private static String getValue(String argsString) {
 		if (argsString.contains(ITEM_VALUE_SEPARATOR)) {
 			//Returns everything after the first ITEM_VALUE_SEPARATOR
@@ -107,11 +158,11 @@ public class CommandOPTools {
 	 * @param items
 	 * @return
 	 */
-	public static LinkedList<CmdLnItem> createFlatList(HashMap<String, CmdLnItem> items) {
+	public static LinkedList<CmdLnBase> createFlatList(HashMap<String, CmdLnBase> items) {
 		
-		LinkedList<CmdLnItem> itemsFlat = new LinkedList<CmdLnItem>();
+		LinkedList<CmdLnBase> itemsFlat = new LinkedList<CmdLnBase>();
 		
-		for (CmdLnItem item : items.values()) {
+		for (CmdLnBase item : items.values()) {
 			itemsFlat.add(item);
 			
 			if (item.hasChildren()) {

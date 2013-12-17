@@ -12,12 +12,13 @@ import java.util.LinkedList;
  * @author thomas
  *
  */
-public class CommandOP extends CmdLnItem {
+public class CommandOP extends CmdLnBase {
 	
 	
 	private PreParsedChain chainHead = null;
 	
-	private LinkedHashMap<String, CmdLnItem> items = null;
+	private LinkedHashMap<String, CmdLnOption> options = null;
+	private LinkedHashMap<String, CmdLnParameter> parameters = null;
 	private LinkedHashMap<String, PreParsedItem> unknownArguments = null;
 	
 	private LinkedList<CommandOPGroup> groups = null;
@@ -35,7 +36,8 @@ public class CommandOP extends CmdLnItem {
 	 */
 	public CommandOP() {
 		
-		items = new LinkedHashMap<String, CmdLnItem>();
+		options = new LinkedHashMap<String, CmdLnOption>();
+		parameters = new LinkedHashMap<String, CmdLnParameter>();
 		groups = new LinkedList<CommandOPGroup>();
 		unknownArguments = new LinkedHashMap<String, PreParsedItem>();
 		errors = new LinkedList<String>();
@@ -51,11 +53,12 @@ public class CommandOP extends CmdLnItem {
 	 * @param description
 	 * @return
 	 */
-	public CmdLnItem addOption(String name, String defaultValue, String description) {
-		CmdLnItem i = new CmdLnItem(name, defaultValue, description);
+	public CmdLnOption addOption(String name, String defaultValue, String description) {
+		CmdLnOption i = new CmdLnOption(name, defaultValue, description);
 		i.setAsOption();
 		i.setParent(this);
-		items.put(name, i);
+		options.put(name, i);
+		children.put(name, i);
 		return i;
 	}
 	
@@ -67,23 +70,25 @@ public class CommandOP extends CmdLnItem {
 	 * @param description
 	 * @return
 	 */
-	public CmdLnItem addOption(String name, String description) {
+	public CmdLnOption addOption(String name, String description) {
 		return addOption(name, null, description);
 	}
 	
 	/**
 	 * Adds a new parameter with the given values (as root-item).
 	 * 
-	 * @param item
+	 * @param name
 	 * @param defaultValue
 	 * @param description
 	 * @return
 	 */
-	public CmdLnItem addParameter(String item, String defaultValue, String description) {
-		CmdLnItem i = new CmdLnItem(item, defaultValue, description);
+	@Override
+	public CmdLnParameter addParameter(String name, String defaultValue, String description) {
+		CmdLnParameter i = new CmdLnParameter(name, defaultValue, description);
 		i.setAsParameter();
 		i.setParent(this);
-		items.put(item, i);
+		parameters.put(name, i);
+		children.put(name, i);
 		return i;
 	}
 	
@@ -94,26 +99,9 @@ public class CommandOP extends CmdLnItem {
 	 * @param description
 	 * @return
 	 */
-	public CmdLnItem addParameter(String item, String description) {
+	@Override
+	public CmdLnParameter addParameter(String item, String description) {
 		return addParameter(item, null, description);
-	}
-	
-	/**
-	 * Adds the given items as parameter (as root-item)
-	 * 
-	 * @param items
-	 * @return
-	 */
-	public CmdLnItem addParameters(CmdLnItem... items) {
-		
-		for (CmdLnItem item : items) {
-			this.items.put(item.getName(), item);
-			item.setAsParameter();
-			item.setParent(this);
-		}
-		
-		return this;
-		
 	}
 	
 	/**
@@ -128,13 +116,22 @@ public class CommandOP extends CmdLnItem {
 	}
 	
 	/**
-	 * Returns all the root-items (options and/or parameters 
-	 * defined on root-level)
+	 * Returns all the options
 	 * 
 	 * @return
 	 */
-	protected HashMap<String, CmdLnItem> getItems() {
-		return items;
+	protected HashMap<String, CmdLnOption> getOptions() {
+		return options;
+	}
+	
+	/**
+	 * Returns all the parameters which have been defined at root-level 
+	 * (non-option-parameters).
+	 * 
+	 * @return
+	 */
+	protected HashMap<String, CmdLnParameter> getParameters() {
+		return parameters;
 	}
 	
 	/**
@@ -162,28 +159,34 @@ public class CommandOP extends CmdLnItem {
 	 * 
 	 * @param option
 	 * @return
+	 * @throws CommandOPError
 	 */
-	public CmdLnItem getOption(String option) {
-		CmdLnItem item = items.get(option);
+	public CmdLnValue getOption(String option) {
+		if (!options.containsKey(option)) {
+			throw new CommandOPError("Item " + option + " is not defined.");
+		}
 		
-		if (item.isParameter()) {
-			return null;
+		CmdLnParameter item = options.get(option);
+		
+		if (!item.isOption() && !item.isShortOption()) {
+			throw new CommandOPError("Item " + option + " is not a short or long option.");
 		}
 		
 		if (item.isAlias()) {
-			return item.getAliasOf();
+			return (CmdLnValue) item.getAliasOf();
 		} else {
 			return item;
 		}
 	}
 	
 	/**
+	 * Returns true if the option exists and has been parsed
 	 * 
 	 * @param option
 	 * @return
 	 */
 	public boolean hasOption(String option) {
-		CmdLnItem item = items.get(option);
+		CmdLnBase item = options.get(option);
 		
 		if (item.isParameter()) {
 			return false;
@@ -198,16 +201,21 @@ public class CommandOP extends CmdLnItem {
 	 * 
 	 * @param option
 	 * @return
+	 * @throws CommandOPError
 	 */
-	public CmdLnItem getParameter(String parameter) {
-		CmdLnItem item = items.get(parameter);
+	public CmdLnValue getParameter(String parameter) {
+		if (!parameters.containsKey(parameter)) {
+			throw new CommandOPError("Item " + parameter + " has not been defined.");
+		}
+		
+		CmdLnParameter item = parameters.get(parameter);
 		
 		if (!item.isParameter()) {
-			return null;
+			throw new CommandOPError("Item " + parameter + " is not a parameter.");
 		}
 		
 		if (item.isAlias()) {
-			return item.getAliasOf();
+			return (CmdLnValue) item.getAliasOf();
 		} else {
 			return item;
 		}
@@ -220,7 +228,7 @@ public class CommandOP extends CmdLnItem {
 	 * @return
 	 */
 	public boolean hasParameter(String parameter) {
-		CmdLnItem item = items.get(parameter);
+		CmdLnBase item = parameters.get(parameter);
 
 		if (!item.isParameter()) {
 			return false;
@@ -262,52 +270,45 @@ public class CommandOP extends CmdLnItem {
 	 * This method does all the steps required for the parsing.
 	 * 
 	 * @param args
-	 * @return
+	 * @return <code>true</code> if parsing went through without any errors, or 
+	 * <code>false</code> if there are parsing errors.
+	 * @throws CommandOPError
 	 */
-	public boolean parse(String[] args) throws CommandOPException {
+	public boolean parse(String[] args) throws CommandOPError {
 		this.args = args;
 		chainHead = null;
-		
-		boolean error = false;
-		
+				
 		createPreParsedChain(args);
 		
-		if (!postParse()) {
-			error = true;
-		}
+		postParse();
 		
-		if (!validate()) {
-			error = true;
-		}
+		validate();
 		
-		return !error;
+		return !(errors.size() > 0);
 	}
 	
 	
 	/**
 	 * This method validates the parsed items
 	 * 
-	 * @return
+	 * @throws CommandOPError
 	 */
-	private boolean validate() throws CommandOPException {
+	private void validate() throws CommandOPError {
 		
-		LinkedList<CmdLnItem> itemsFlat = CommandOPTools.createFlatList(items);
-		boolean error = false;
+		LinkedList<CmdLnBase> itemsFlat = CommandOPTools.createFlatList(children);
 		
-		for (CmdLnItem item : itemsFlat) {
+		for (CmdLnBase item : itemsFlat) {
 			//Mandatory
 			//If the item has a parent item, only validate it if the parent item is parsed too
 			if (!item.hasParent() || (item.hasParent() && item.getParentInternal().isParsed())) {
 				if (item.isMandatory() && !item.isParsed()) {
-					error("Mandatory item '" + item.getName() + "' not found");
-					error = true;
+					error("Item '" + item.getName() + "' is mandatory");
 				}
 			}
 			
 			//Required value
 			if (item.isValueRequired() && item.isParsed() && item.getValue() == null) {
 				error("Item '" + item.getName() + "' requires a value");
-				error = true;
 			}
 			
 			//Minimum number of values
@@ -315,7 +316,6 @@ public class CommandOP extends CmdLnItem {
 					&& item.getNumOfValues() < item.getMultiValuesRangeMin()) {
 				error("Item '" + item.getName() + "' needs at least " + 
 					item.getMultiValuesRangeMin() + " values.");
-				error = true;
 			}
 		}
 		
@@ -328,7 +328,7 @@ public class CommandOP extends CmdLnItem {
 				//The given group items can not appear together
 				
 				int numOfExisting = 0;
-				for (CmdLnItem item : group.getItems().values()) {
+				for (CmdLnBase item : group.getItems().values()) {
 					
 					if (item.isParsed()) {
 						numOfExisting++;
@@ -337,7 +337,6 @@ public class CommandOP extends CmdLnItem {
 							//Another one has been found already
 							error("More than one item of the EXCLUDE-group '" + group.getName() + "' found. " +
 									"Only one of the following items is allowed: " + group.getItems().keySet());
-							error = true;
 							break;
 						}
 						
@@ -349,7 +348,6 @@ public class CommandOP extends CmdLnItem {
 					error("The EXCLUDE_ONE-group '" + group.getName() + 
 							"' needs at least one (but not more) of its items. " +
 							"Items in the group are: " + group.getItems().keySet());
-					error = true;
 				}
 				
 			} else if (group.getMode() == CommandOPGroup.MODE_INCLUDE 
@@ -358,13 +356,12 @@ public class CommandOP extends CmdLnItem {
 				
 				boolean hasOneParsedItem = false;
 				
-				for (CmdLnItem item : group.getItems().values()) {
+				for (CmdLnBase item : group.getItems().values()) {
 					if (group.getMode() == CommandOPGroup.MODE_INCLUDE ) {
 						if (!item.isParsed()) {
 							//One of the group items does not exist
 							error("One or more items of the INCLUDE-group '" + group.getName() + 
 									"' are missing. Needed items are: " + group.getItems().keySet());
-							error = true;
 							break;
 						}
 					} else if (group.getMode() == CommandOPGroup.MODE_INCLUDE_ONE) {
@@ -379,50 +376,49 @@ public class CommandOP extends CmdLnItem {
 					//At least one of the group items is needed, but there was none
 					error("No item of the INCLUDE-group '" + group.getName() + 
 							"' has been found. At least one of these items is needed: " + group.getItems().keySet());
-					error = true;
 				}
 				
 			}
 			
 		}
-
-		return !error;
 		
 	}
 	
 	
 	/**
 	 * Follows the pre parsed chain of options/parameters one by one, looking 
-	 * for the corresponding defined item. If a defined item is found, the value 
-	 * and the flag whether it is an option, a short option or a parameter is set
+	 * for the corresponding defined item (or its alias). If a defined item is found, 
+	 * its value is set.
 	 * 
-	 * @return
+	 * @throws CommandOPError
 	 */
-	private boolean postParse() throws CommandOPException {
+	private void postParse() throws CommandOPError {
 		
 		PreParsedChain currentChain = chainHead;
-		CmdLnItem currentItem = null;
-		CmdLnItem previousItem = null;
-		boolean noOptionParameters = true;
-		boolean error = false;
-		
+		CmdLnBase currentItem = null;
+		CmdLnBase previousItem = null;
+		boolean noOptionParameters = true;		
 		
 		while (currentChain != null) {
 			
-			if (currentChain.isOption() || noOptionParameters) {
+			if (currentChain.isOption() || currentChain.isShortOption() || noOptionParameters) {
 				if (currentItem != null) {
 					previousItem = currentItem;
 				}
 				
-				//It's an option, so take the item from the root
-				currentItem = items.get(currentChain.getName());
+				//It's an option or a NoOptionParameters, so take the item from the root
+				currentItem = children.get(currentChain.getName());
 				
-				//Run as noOptionParameters until the first option is found
-				noOptionParameters = !currentChain.isOption();
+				if (noOptionParameters) {
+					//Run as noOptionParameters until the first option is found
+					//NoOptionParameters can be at the beginning of the command line 
+					//as parameters without an option as parent
+					noOptionParameters = !(currentChain.isOption() || currentChain.isShortOption());
+				}
 			} else {
 				if (currentItem == null) {
 					if (previousItem == null) {
-						previousItem = items.get(currentChain.getName());
+						previousItem = children.get(currentChain.getName());
 					}
 					
 					//If no item has been found before, then continue with the previous item
@@ -452,6 +448,8 @@ public class CommandOP extends CmdLnItem {
 					}
 					
 					if (!found) {
+						//The item has not been found in the defined items. It 
+						//must be a value of a multi value item
 						currentItem = null;
 					}
 					
@@ -459,25 +457,32 @@ public class CommandOP extends CmdLnItem {
 			}
 			
 			
-			
 			//If a defined item has been found, set its data
 			if (currentItem != null) {
-				//Setting the type needs to be before setting the value, 
-				//because setting the value might depend on the type
 				
-				if (currentChain.isOption()) {
-					currentItem.setAsOption();
-				} else if (currentChain.isShortOption()) {
-					currentItem.setAsShortOption();
-				} else if (currentChain.isParameter()) {
-					currentItem.setAsParameter();
-				}
+				if (currentChain.isOption() != currentItem.isOption()) {
+					if (currentChain.isOption()) {
+						error("Item " + currentChain.getName() + " is given as option (--) on the command line, but not defined as one.");
+					} else {
+						error("Item " + currentChain.getName() + " is defined as option (--), but not given as one on the command line.");
+					}
+				} else if (currentChain.isShortOption() != currentItem.isShortOption()) {
+					if (currentChain.isShortOption()) {
+						error("Item " + currentChain.getName() + " is given as short option (-) on the command line, but not defined as one.");
+					} else {
+						error("Item " + currentChain.getName() + " is defined as short option (-), but not given as one on the command line.");
+					}
+				} else if (currentChain.isParameter() != currentItem.isParameter()) {
+					if (currentChain.isParameter()) {
+						error("Item " + currentChain.getName() + " is given as parameter on the command line, but not defined as one.");
+					} else {
+						error("Item " + currentChain.getName() + " is defined as parameter, but not given as one on the command line.");
+					}				}
 				
 				String errormsg = currentItem.setValue(currentChain.getValue());
 				
 				if (errormsg != null) {
 					error(errormsg);
-					error = true;
 				} else {
 					currentItem.setCmdLnPos(currentChain.getChainPos());
 				}
@@ -500,20 +505,34 @@ public class CommandOP extends CmdLnItem {
 					
 					if (errormsg != null) {
 						error(errormsg);
-						error = true;
 					}			
 				} else {
-					error("Unknown argument '" + currentChain.getName() + "' given");
-					unknownArguments.put(currentChain.getName(), currentChain);
-					error = true;
+					//If there is a value it should have been assigned already
+					//If there is not next item, nothing else can be added
+					if (currentChain.getValue() != null || previousItem.getNextItem() == null) {
+						if (previousItem != null) {
+							if (previousItem.isParameter()) {
+								error("Unknown argument '" + currentChain.getName() + "' given for option '" + previousItem.getParent().getName() + "'");
+							} else if (previousItem.isOption() || previousItem.isShortOption()) {
+								error("Unknown argument '" + currentChain.getName() + "' given for option '" + previousItem.getName() + "'");
+							} else {
+								error("Unknown argument '" + currentChain.getName() + "' given as no-option-parameter.");
+							}
+						}
+						
+						unknownArguments.put(currentChain.getName(), currentChain);
+					} else {
+						//No value given -> it is just assumed that the given item 
+						//is only the value for the next item
+						currentItem = previousItem.getNextItem();
+						currentItem.setValue(currentChain.getName());
+					}
 				}
 			}
 			
 			//Take the next item from the post parsed chain
 			currentChain = currentChain.getNext();
 		}
-		
-		return !error;
 		
 	}
 	
@@ -544,6 +563,9 @@ public class CommandOP extends CmdLnItem {
 				
 				String shortOptions = CommandOPTools.getOption(a);
 				
+				String shortOptionsValue = CommandOPTools.getOptionValue(a);
+				
+				
 				//Use each character as option
 				for (int j = 0; j < shortOptions.length(); j++) {
 					lastChain = new PreParsedChain(CommandOPTools.OPTIONSPREFIX_SHORT + shortOptions.charAt(j), lastChain);
@@ -552,6 +574,12 @@ public class CommandOP extends CmdLnItem {
 						chainHead = lastChain;
 					}
 				}
+				
+				//The last option can have a value
+				if (shortOptionsValue != null && shortOptionsValue.length() > 0) {
+					lastChain.setValue(shortOptionsValue);
+				}
+				
 			} else {
 				//LONG option
 				//PARAMETER
@@ -573,16 +601,24 @@ public class CommandOP extends CmdLnItem {
 		
 	}
 	
-	
-	private void error(String errorMessage) throws CommandOPException {
-		if (!exceptionAtFirstError) {
-			errors.add(errorMessage);
-		} else {
-			throw new CommandOPException(errorMessage);
+	/**
+	 * 
+	 * 
+	 * @param errorMessage
+	 * @throws CommandOPError
+	 */
+	private void error(String errorMessage) throws CommandOPError {
+		errors.add(errorMessage);
+		if (exceptionAtFirstError) {
+			throw new CommandOPError(errorMessage);
 		}
 	}
 	
-	
+	/**
+	 * 
+	 * 
+	 * @param e
+	 */
 	public void exceptionAtFirstError(boolean e) {
 		exceptionAtFirstError = e;
 	}
