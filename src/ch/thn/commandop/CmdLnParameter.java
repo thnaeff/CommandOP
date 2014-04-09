@@ -85,7 +85,7 @@ public class CmdLnParameter extends CmdLnValue {
 	 * item's name.
 	 * 
 	 * @param aliasName
-	 * @return
+	 * @return 
 	 */
 	public CmdLnParameter addAlias(String aliasName) {
 		
@@ -103,8 +103,8 @@ public class CmdLnParameter extends CmdLnValue {
 		
 		alias.put(aliasName, item);
 		
-		//Return the alias
-		return item;
+		//Return actual parameter and not the alias
+		return this;
 	}
 	
 	
@@ -157,10 +157,9 @@ public class CmdLnParameter extends CmdLnValue {
 	 * @return
 	 */
 	public CmdLnParameter setHiddenInPrint() {
-		this.isHiddenInPrint = true;
+		super.setHiddenInPrint();
 		return this;
 	}
-	
 	
 	/**
 	 * Sets the validator for this item. The validator is called when 

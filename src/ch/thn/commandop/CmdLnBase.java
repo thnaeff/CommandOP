@@ -54,7 +54,7 @@ public abstract class CmdLnBase {
 	private boolean isParameter = false;
 	protected boolean isBoolean = false;
 	protected boolean isValueRequired = false;
-	protected boolean isHiddenInPrint = false;
+	private boolean isHiddenInPrint = false;
 	protected boolean isMultiValueItem = false;
 	
 	private int level = 0;
@@ -584,6 +584,18 @@ public abstract class CmdLnBase {
 	 */
 	protected boolean isValueRequired() {
 		return isValueRequired;
+	}
+	
+	/**
+	 * Sets the status of the hidden-flag.<br>
+	 * If an item is set to be hidden, it does not show up when 
+	 * printing the structure with the ({@link CommandOPPrinter}).
+	 * 
+	 * @return
+	 */
+	protected CmdLnBase setHiddenInPrint() {
+		isHiddenInPrint = true;
+		return this;
 	}
 	
 	/**
