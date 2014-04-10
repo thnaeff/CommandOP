@@ -65,7 +65,7 @@ public class RegexMatcherValidator extends CommandOPValidator {
 		
 		Matcher matcher = pattern.matcher(newValue);
 		
-		if (matcher.matches()) {
+		if (matcher.find()) {
 			return true;
 		}
 		
