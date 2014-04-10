@@ -55,9 +55,9 @@ public class CommandOPPrinter {
 			preparsed.append(chain.getName() + CommandOPTools.ITEM_VALUE_SEPARATOR + chain.getValue());
 			
 			if (chain.isOption() || chain.isShortOption()) {
-				preparsed.append(" [option]");
+				preparsed.append(" (option)");
 			} else {
-				preparsed.append(" [param]");
+				preparsed.append(" (param)");
 			}
 			
 			if (flat) {
@@ -214,9 +214,9 @@ public class CommandOPPrinter {
 				}
 				
 				if (sbAliases.length() > 0) {
-					line.append(" [");
+					line.append(" (");
 					line.append(sbAliases);
-					line.append("] ");
+					line.append(") ");
 				}
 			}
 			
