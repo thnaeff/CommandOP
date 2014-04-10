@@ -129,6 +129,22 @@ public class CommandOPPrinter {
 			
 			StringBuilder line = new StringBuilder();
 			
+			if (item.isParameter() && !flat) {
+				if (item.hasParent()) {
+					line.append(" ");
+				}
+				
+				//Insets for higher levels
+				for (int i = 0; i < item.getLevel(); i++) {
+					line.append("   ");
+				}
+			}
+			
+			//Optional
+			if (!item.isMandatory()) {
+				line.append("[");
+			}
+			
 			//Short options (only if no flat output)
 			if (!flat && item.hasAlias()) {				
 				for (CmdLnBase alias : item.getAlias().values()) {
@@ -147,20 +163,6 @@ public class CommandOPPrinter {
 				line.append(CommandOPTools.OPTIONSPREFIX_LONG);
 			} else if (item.isShortOption()) {
 				line.append(CommandOPTools.OPTIONSPREFIX_SHORT);
-			} else if (item.isParameter() && !flat) {
-				if (item.hasParent()) {
-					line.append(" ");
-				}
-				
-				//Insets for higher levels
-				for (int i = 0; i < item.getLevel(); i++) {
-					line.append("   ");
-				}
-			}
-			
-			//Optional
-			if (!item.isMandatory() && item.isParameter()) {
-				line.append("[");
 			}
 			
 //			//Mandatory
@@ -171,7 +173,7 @@ public class CommandOPPrinter {
 			line.append(item.getName());
 			
 			//Optional
-			if (!item.isMandatory() && item.isParameter()) {
+			if (!item.isMandatory()) {
 				line.append("]");
 			}
 			
