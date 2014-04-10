@@ -28,13 +28,14 @@ public class NumberValidator extends CommandOPValidator {
 	public boolean validate(CmdLnBase item, String newValue, int multiValuePos) {
 		
 		if (newValue == null) {
+			setErrorMessage("Failed to parse value as integer. Value is NULL");
 			return false;
 		}
 		
 		try {
 			Integer.parseInt(newValue);
 		} catch (NumberFormatException e) {
-			setErrorMessage("Failed to parse value as integer");
+			setErrorMessage("Failed to parse value as integer. Value does not contain a parsable integer.");
 			return false;
 		}
 		

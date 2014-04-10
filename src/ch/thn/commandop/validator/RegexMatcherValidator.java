@@ -29,9 +29,28 @@ public class RegexMatcherValidator extends CommandOPValidator {
 	
 	private Pattern pattern = null;
 	
+	private String messageInCaseOfError = null;
 	
+	/**
+	 * 
+	 * 
+	 * @param regexPattern
+	 */
 	public RegexMatcherValidator(String regexPattern) {
 		pattern = Pattern.compile(regexPattern);
+		
+	}
+	
+	/**
+	 * 
+	 * 
+	 * @param regexPattern
+	 * @param messageInCaseOfError The message to be set as error message if there 
+	 * is an error.
+	 */
+	public RegexMatcherValidator(String regexPattern, String messageInCaseOfError) {
+		pattern = Pattern.compile(regexPattern);
+		this.messageInCaseOfError = messageInCaseOfError;
 		
 	}
 	
@@ -40,7 +59,8 @@ public class RegexMatcherValidator extends CommandOPValidator {
 	public boolean validate(CmdLnBase item, String newValue, int multiValuePos) {
 		
 		if (newValue == null) {
-			return true;
+			setErrorMessage(messageInCaseOfError);
+			return false;
 		}
 		
 		Matcher matcher = pattern.matcher(newValue);
@@ -49,6 +69,7 @@ public class RegexMatcherValidator extends CommandOPValidator {
 			return true;
 		}
 		
+		setErrorMessage(messageInCaseOfError);
 		return false;
 		
 	}
