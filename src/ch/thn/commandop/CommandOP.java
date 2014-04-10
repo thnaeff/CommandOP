@@ -195,7 +195,7 @@ public class CommandOP extends CmdLnBase {
 	 */
 	public CmdLnValue getOption(String option) {
 		if (!options.containsKey(option)) {
-			throw new CommandOPError("Item " + option + " is not defined.");
+			throw new CommandOPError("Item " + option + " has not been defined as option.");
 		}
 		
 		CmdLnParameter item = options.get(option);
@@ -237,7 +237,7 @@ public class CommandOP extends CmdLnBase {
 	 */
 	public CmdLnValue getParameter(String parameter) {
 		if (!parameters.containsKey(parameter)) {
-			throw new CommandOPError("Item " + parameter + " has not been defined.");
+			throw new CommandOPError("Item " + parameter + " has not been defined as parameter.");
 		}
 		
 		CmdLnParameter item = parameters.get(parameter);
