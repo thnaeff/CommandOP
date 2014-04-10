@@ -35,8 +35,8 @@ public class CommandOpServerClient {
 						);
 		cmdop.addOption("maxConnections", "5", "default=5");
 		cmdop.addOption("timeout", "30", "default=30");
-		cmdop.addOption("aaa", "defined as boolean").addShortOption('a').setAsBoolean();
-		cmdop.addOption("bbb", "not defined as boolean").addShortOption('b').setValueRequired();
+		cmdop.addOption("aaa", "defined as boolean").addShortAlias('a').setAsBoolean();
+		cmdop.addOption("bbb", "not defined as boolean").addShortAlias('b').setValueRequired();
 		cmdop.addOption("omulti", "option defined as multi value item").setAsMultiValueItem();
 		cmdop.addParameter("pmulti", "parameter at option-level defined as multi value item").setAsMultiValueItem();
 		

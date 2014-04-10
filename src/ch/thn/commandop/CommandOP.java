@@ -67,6 +67,15 @@ public class CommandOP extends CmdLnBase {
 	 * @return
 	 */
 	public CmdLnOption addOption(String name, String defaultValue, String description) {
+		
+		if (options.containsKey(name)) {
+			throw new CommandOPError("The name '" + name + "' is already used as option. Can not add parameter.");
+		} else if (alias.containsKey(name)) {
+			throw new CommandOPError("The name '" + name + "' is already used as alias. Can not add parameter.");
+		} else if (parameters.containsKey(name)) {
+			throw new CommandOPError("The name '" + name + "' is already used as parameter.  Can not add parameter.");
+		}
+		
 		CmdLnOption i = new CmdLnOption(name, defaultValue, description);
 		i.setAsOption();
 		i.setParent(this);
@@ -97,6 +106,16 @@ public class CommandOP extends CmdLnBase {
 	 */
 	@Override
 	public CmdLnParameter addParameter(String name, String defaultValue, String description) {
+		
+		if (options.containsKey(name)) {
+			throw new CommandOPError("The name '" + name + "' is already used as option. Can not add parameter.");
+		} else if (alias.containsKey(name)) {
+			throw new CommandOPError("The name '" + name + "' is already used as alias. Can not add parameter.");
+		} else if (parameters.containsKey(name)) {
+			throw new CommandOPError("The name '" + name + "' is already used as parameter.  Can not add parameter.");
+		}
+		
+		
 		CmdLnParameter i = new CmdLnParameter(name, defaultValue, description);
 		i.setAsParameter();
 		i.setParent(this);
@@ -243,7 +262,7 @@ public class CommandOP extends CmdLnBase {
 	public boolean hasParameter(String parameter) {
 		CmdLnBase item = parameters.get(parameter);
 
-		if (!item.isParameter()) {
+		if (item == null || !item.isParameter()) {
 			return false;
 		}
 		

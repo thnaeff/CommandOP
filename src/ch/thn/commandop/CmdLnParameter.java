@@ -89,15 +89,11 @@ public class CmdLnParameter extends CmdLnValue {
 	 */
 	public CmdLnParameter addAlias(String aliasName) {
 		
-		CmdLnParameter item = null;
-		
-		if (getParentInternal() instanceof CommandOP) {
-			//It's an option, so its parent is ComandOP
-			item = ((CommandOP)getParentInternal()).addOption(aliasName, null);
-		} else {
-			//It's a parameter, so its parent is not ComandOP
-			item = getParentInternal().addParameter(aliasName, null);
+		if (alias.containsKey(aliasName)) {
+			throw new CommandOPError("Alias with the name '" + aliasName + "' already exists. Can not add alias.");
 		}
+		
+		CmdLnParameter item = getParentInternal().addParameter(aliasName, null);
 		
 		item.setAliasOf(this);
 		

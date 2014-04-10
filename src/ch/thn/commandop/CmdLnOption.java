@@ -76,11 +76,35 @@ public class CmdLnOption extends CmdLnParameter {
 	 * @param shortName
 	 * @return
 	 */
-	public CmdLnOption addShortOption(Character shortName) {		
-		addAlias(shortName.toString()).setAsShortOption();
+	public CmdLnOption addShortAlias(Character shortName) {		
+		addAlias(shortName.toString());
+		alias.get(shortName.toString()).setAsShortOption();
 		return this;
 	}
 	
+	/**
+	 * Adds an alias to this item. An alias can be used instead of the 
+	 * item's name.
+	 * 
+	 * @param aliasName
+	 * @return 
+	 * @throws CommandOPError if an alias with the given name already exists
+	 */
+	public CmdLnParameter addAlias(String aliasName) {
+		
+		if (alias.containsKey(aliasName)) {
+			throw new CommandOPError("Alias with the name '" + aliasName + "' already exists. Can not add alias.");
+		}
+		
+		CmdLnParameter item = ((CommandOP)getParentInternal()).addOption(aliasName, null);
+		
+		item.setAliasOf(this);
+		
+		alias.put(aliasName, item);
+		
+		//Return actual parameter and not the alias
+		return this;
+	}
 	
 	
 }
