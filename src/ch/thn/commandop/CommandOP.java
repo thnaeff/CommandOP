@@ -522,7 +522,7 @@ public class CommandOP extends CmdLnBase {
 				} else {
 					//If there is a value it should have been assigned already
 					//If there is not next item, nothing else can be added
-					if (currentChain.getValue() != null || previousItem.getNextItem() == null) {
+					if (currentChain.getValue() != null || previousItem == null || previousItem.getNextItem() == null) {
 						if (previousItem != null) {
 							if (previousItem.isParameter()) {
 								error("Unknown argument '" + currentChain.getName() + "' given for option '" + previousItem.getParent().getName() + "'");
