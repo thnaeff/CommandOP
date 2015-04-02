@@ -17,6 +17,10 @@ public class CommandOPTest {
 	 */
 	public static void main(String[] args) {
 		
+		//- On the command line, an option is followed by its parameters.
+		//- Parameters can also be defined without a parent option. Those "optionless" parameters 
+		//  have to appear at the beginning of the command line.
+		
 		args = "optionless1 optionless2=value -abc --option1 param11 param12=value --option2 param21 param211 param22=value -s - --  stuff ".split(" ");
 //		args = "-ca --atest=aliasvalue --option1 param12=123 --option3 unknownparam=value --option2=o2 param21=21 param211=p211 param22".split(" ");
 //		args = "optionless2 --atest=test --option3 value1 value2 value3 param31=31 param311=311 param32=32 --option2=o2".split(" ");
@@ -26,8 +30,12 @@ public class CommandOPTest {
 		
 		NumberValidator numvalidator = new NumberValidator();
 		
+		//Just a parameter (without -- or - prefix). This parameter is directly added 
+		//to the main CommandOP object which makes it a "optionless" parameter
 		cmdop.addParameter("optionless2", "somevalue", "Just a parameter without option").setMandatory();
 		
+		//An option (with -- long or - short prefix). An option can have any number 
+		//of parameters as children
 		cmdop.addOption("a", "short param a").setAsBoolean().setMandatory();
 		
 		cmdop.addOption("c", "def", "short param c").setValueRequired();
@@ -36,6 +44,7 @@ public class CommandOPTest {
 		
 		cmdop.addOption("withaliases", "with aliases").addAlias("atest").addAlias("atest2");
 		
+		//An option with its own child parameters
 		cmdop.addOption("option2", "default", "An option with children")
 				.addParameters(
 				CommandOPFactory.newParameter("param21", "").setValidator(numvalidator)

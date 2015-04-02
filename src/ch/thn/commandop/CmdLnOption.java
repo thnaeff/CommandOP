@@ -18,7 +18,9 @@ package ch.thn.commandop;
 
 
 /**
- * 
+ * A command line option does not have a parent item and has a long prefix "--" or a 
+ * short prefix "-". Any number of parameters can be added as child items to an option. 
+ * An option can also have a value.
  * 
  * Format follows the GNU format as much as possible: 
  * http://www.gnu.org/software/guile/manual/html_node/Command-Line-Format.html

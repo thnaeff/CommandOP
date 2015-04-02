@@ -20,6 +20,12 @@ import ch.thn.commandop.validator.CommandOPValidator;
 
 
 /**
+ * A parameter is a child item of an option ({@link CmdLnOption}). A parameter can 
+ * have a value.
+ * 
+ * One exception is an "optionless" parameter. An "optionless" parameter can be added 
+ * directly to the main {@link CommandOP} object.
+ * 
  * @author Thomas Naeff (github.com/thnaeff)
  *
  */

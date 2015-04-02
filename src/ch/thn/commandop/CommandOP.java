@@ -127,13 +127,13 @@ public class CommandOP extends CmdLnBase {
 	/**
 	 * Adds a new parameter with the given values (as root-item).
 	 * 
-	 * @param item
+	 * @param name
 	 * @param description
 	 * @return
 	 */
 	@Override
-	public CmdLnParameter addParameter(String item, String description) {
-		return addParameter(item, null, description);
+	public CmdLnParameter addParameter(String name, String description) {
+		return addParameter(name, null, description);
 	}
 	
 	/**
