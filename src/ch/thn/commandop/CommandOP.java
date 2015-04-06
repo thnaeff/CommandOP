@@ -543,7 +543,7 @@ public class CommandOP extends CmdLnBase {
 					//If there is not next item, nothing else can be added
 					if (currentChain.getValue() != null || previousItem == null || previousItem.getNextItem() == null) {
 						if (previousItem != null) {
-							if (previousItem.isParameter()) {
+							if (previousItem.isParameter() && previousItem.hasParent()) {
 								error("Unknown argument '" + currentChain.getName() + "' given for option '" + previousItem.getParent().getName() + "'");
 							} else if (previousItem.isOption() || previousItem.isShortOption()) {
 								error("Unknown argument '" + currentChain.getName() + "' given for option '" + previousItem.getName() + "'");
