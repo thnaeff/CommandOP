@@ -36,6 +36,7 @@ public class CommandOP extends CmdLnBase {
 	
 	private LinkedList<CommandOPGroup> groups = null;
 	private LinkedList<String> errors = null;
+	private LinkedList<String> info = null;
 	
 	private String[] args = null;
 	
@@ -54,6 +55,7 @@ public class CommandOP extends CmdLnBase {
 		groups = new LinkedList<CommandOPGroup>();
 		unknownArguments = new LinkedHashMap<String, PreParsedItem>();
 		errors = new LinkedList<String>();
+		info = new LinkedList<String>();
 		
 	}
 	
@@ -254,7 +256,9 @@ public class CommandOP extends CmdLnBase {
 	}
 	
 	/**
-	 * 
+	 * Checks if a parameter with the given name exists. A parameter might exist 
+	 * if the parameter has been added and the parameter has been parsed from the command 
+	 * line arguments
 	 * 
 	 * @param parameter
 	 * @return
@@ -290,12 +294,21 @@ public class CommandOP extends CmdLnBase {
 	}
 	
 	/**
-	 * Returns all the error messages of the errors which occured during parsing
+	 * Returns all the error messages of the errors which occurred during parsing
 	 * 
 	 * @return
 	 */
 	public LinkedList<String> getErrorMessages() {
 		return errors;
+	}
+
+	/**
+	 * Returns all the info messages of the errors which occurred during parsing
+	 * 
+	 * @return
+	 */
+	public LinkedList<String> getInfoMessages() {
+		return info;
 	}
 	
 	/**
@@ -314,6 +327,8 @@ public class CommandOP extends CmdLnBase {
 		//on this object
 		
 		unknownArguments.clear();
+		errors.clear();
+		info.clear();
 		
 		for (CmdLnOption item : options.values()) {
 			item.reset();
@@ -505,29 +520,25 @@ public class CommandOP extends CmdLnBase {
 			//If a defined item has been found, set its data
 			if (currentItem != null) {
 				
-				if (currentChain.isOption() != currentItem.isOption()) {
+				if (currentChain.isOption() != currentItem.isOption()
+						|| currentChain.isShortOption() != currentItem.isShortOption()
+						|| currentChain.isParameter() != currentItem.isParameter()) {
 					if (currentChain.isOption()) {
-						error("Item " + currentChain.getName() + " is given as option (--) on the command line, but not defined as one.");
+						info("Item " + currentChain.getName() + " is given as " + currentChain.getTypeDescString() + " on the command line, but it is defined as " + currentItem.getTypeDescString() + ".");
 					} else {
-						error("Item " + currentChain.getName() + " is defined as option (--), but not given as one on the command line.");
+						info("Item " + currentItem.getName() + " is defined as " + currentItem.getTypeDescString() + ", but it is given as " + currentChain.getTypeDescString() + " on the command line.");
 					}
-				} else if (currentChain.isShortOption() != currentItem.isShortOption()) {
-					if (currentChain.isShortOption()) {
-						error("Item " + currentChain.getName() + " is given as short option (-) on the command line, but not defined as one.");
-					} else {
-						error("Item " + currentChain.getName() + " is defined as short option (-), but not given as one on the command line.");
-					}
-				} else if (currentChain.isParameter() != currentItem.isParameter()) {
-					if (currentChain.isParameter()) {
-						error("Item " + currentChain.getName() + " is given as parameter on the command line, but not defined as one.");
-					} else {
-						error("Item " + currentChain.getName() + " is defined as parameter, but not given as one on the command line.");
-					}				}
+				}
 				
 				String errormsg = currentItem.setValue(currentChain.getValue());
 				
 				if (errormsg != null) {
-					error(errormsg);
+					//The returned string from setValue might contain the [INFO] prefix
+					if (errormsg.startsWith("[INFO] ")) {
+						info(errormsg.substring("[INFO] ".length()));
+					} else {
+						error(errormsg);
+					}
 				} else {
 					currentItem.setCmdLnPos(currentChain.getChainPos());
 				}
@@ -657,6 +668,16 @@ public class CommandOP extends CmdLnBase {
 		if (exceptionAtFirstError) {
 			throw new CommandOPError(errorMessage);
 		}
+	}
+	
+	/**
+	 * 
+	 * 
+	 * @param infoMessage
+	 * @throws CommandOPError
+	 */
+	private void info(String infoMessage) {
+		info.add(infoMessage);
 	}
 	
 	/**

@@ -32,6 +32,9 @@ public abstract class CmdLnBase {
 	//TODO allow multi var items, like "server 65001 localhost"
 	//maybe look up variables from the parameter until the next known option/parameter?
 	
+	public static String OPTION_DESC = "option (--)";
+	public static String SHORTOPTION_DESC = "short option (-)";
+	public static String PARAMETER_DESC = "parameter";
 	
 	private CmdLnBase parent = null;
 	private CmdLnBase aliasOf = null;	//The item of which this item is the alias of
@@ -405,15 +408,14 @@ public abstract class CmdLnBase {
 	 * 
 	 * @param value
 	 * @param multiValuePos 
-	 * @return Returns an error message if setting the value failed, or null if 
-	 * everything was OK.
+	 * @return Returns an info or error message if setting the value failed, or null if 
+	 * everything was OK. If it is a info message, it contains the "[INFO] " prefix
 	 */
 	private String setValue(String value, int multiValuePos) {
 
 		if (aliasOf != null) {
 			//This item is the alias of another item
-			aliasOf.setValue(value, multiValuePos);
-			return null;
+			return aliasOf.setValue(value, multiValuePos);
 		}
 				
 		if (isMultiValueItem) {
@@ -430,7 +432,7 @@ public abstract class CmdLnBase {
 		//Do not parse an item twice (do not set a value twice) if its not 
 		//a multi value item
 		if (isParsed && !isMultiValueItem) {
-			return "Item '" + getName() + "' occurs more than once. Only first occurrence is used.";
+			return "[INFO] Item '" + getName() + "' occurs more than once. Only first occurrence is used.";
 		}
 		
 		//Set the parsed flag already here. Even though the validation might fail 
@@ -572,6 +574,26 @@ public abstract class CmdLnBase {
 	 */
 	protected boolean isParameter() {
 		return isParameter;
+	}
+	
+	/**
+	 * Returns a string which describes the type:
+	 * - option
+	 * - short option
+	 * - parameter
+	 * 
+	 * @return
+	 */
+	public String getTypeDescString() {
+		if (isOption) {
+			return OPTION_DESC;
+		} else if (isShortOption) {
+			return SHORTOPTION_DESC;
+		} else if (isParameter) {
+			return PARAMETER_DESC;
+		}
+		
+		return null;
 	}
 	
 	/**

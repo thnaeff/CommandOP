@@ -30,7 +30,11 @@ public class PreParsedItem {
 	private String name = null;
 	private String value = null;
 	
-	
+	/**
+	 * 
+	 * 
+	 * @param arg
+	 */
 	public PreParsedItem(String arg) {
 		
 		if (arg.startsWith(CommandOPTools.OPTIONSPREFIX_LONG)) {
@@ -52,30 +56,79 @@ public class PreParsedItem {
 		
 	}
 	
+	/**
+	 * 
+	 * 
+	 * @param value
+	 */
 	public void setValue(String value) {
 		this.value = value;
 	}
 	
+	/**
+	 * 
+	 * 
+	 * @return
+	 */
 	public boolean isParameter() {
 		return isParameter;
 	}
 	
+	/**
+	 * 
+	 * 
+	 * @return
+	 */
 	public boolean isOption() {
 		return isOption;
 	}
 	
+	/**
+	 * 
+	 * 
+	 * @return
+	 */
 	public boolean isShortOption() {
 		return isShortOption;
 	}
 	
+	/**
+	 * 
+	 * 
+	 * @return
+	 */
 	public String getName() {
 		return name;
 	}
 	
+	/**
+	 * 
+	 * 
+	 * @return
+	 */
 	public String getValue() {
 		return value;
 	}
 	
+	/**
+	 * Returns a string which describes the type:
+	 * - option
+	 * - short option
+	 * - parameter
+	 * 
+	 * @return
+	 */
+	public String getTypeDescString() {
+		if (isOption) {
+			return CmdLnBase.OPTION_DESC;
+		} else if (isShortOption) {
+			return CmdLnBase.SHORTOPTION_DESC;
+		} else if (isParameter) {
+			return CmdLnBase.PARAMETER_DESC;
+		}
+		
+		return null;
+	}
 	
 
 }

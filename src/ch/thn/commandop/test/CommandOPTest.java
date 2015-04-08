@@ -21,8 +21,8 @@ public class CommandOPTest {
 		//- Parameters can also be defined without a parent option. Those "optionless" parameters 
 		//  have to appear at the beginning of the command line.
 		
-		args = "optionless1 optionless2=value -abc --option1 param11 param12=value --option2 param21 param211 param22=value -s - --  stuff ".split(" ");
-//		args = "-ca --atest=aliasvalue --option1 param12=123 --option3 unknownparam=value --option2=o2 param21=21 param211=p211 param22".split(" ");
+		//args = "optionless1 optionless2=value -abc --option1 param11 param12=value --option2 param21 param211 param22=value -s - --  stuff ".split(" ");
+		args = "-ca --atest=aliasvalue --option1 param12=123 --option3 unknownparam=value --option2=o2 param21=21 param211=p211 param22".split(" ");
 //		args = "optionless2 --atest=test --option3 value1 value2 value3 param31=31 param311=311 param32=32 --option2=o2".split(" ");
 				
 		
@@ -79,7 +79,7 @@ public class CommandOPTest {
 		cmdop.addGroup(group1);
 		cmdop.addGroup(group2);
 		
-		cmdop.exceptionAtFirstError(true);
+		cmdop.exceptionAtFirstError(false);
 		try {
 			if (!cmdop.parse(args)) {
 				System.err.println("---> Parsing errors");
@@ -87,19 +87,32 @@ public class CommandOPTest {
 				for (String s : errors) {
 					System.err.println(s);
 				}
+				
 			}
 		} catch (CommandOPError e) {
 			e.printStackTrace();
 		}
 		
+		LinkedList<String> info = cmdop.getInfoMessages();
+		if (info.size() > 0) {
+			System.out.println("---> Parsing info");
+			for (String s : info) {
+				System.out.println(s);
+			}
+			
+			System.out.println(" ");
+		}
 		
 		CommandOPPrinter printer = new CommandOPPrinter(cmdop);
 		
 		System.out.println("args=" + printer.getArgs());
+		System.out.println(" ");
 		System.out.println("preParsed: " + printer.getPreParsed(true));
+		System.out.println(" ");
 		System.out.println(printer.getPreParsed(false));
 		
 		System.out.println("definedItems: " + printer.getDefinedItems(true, false, false, false));
+		System.out.println(" ");
 		System.out.println(printer.getDefinedItems(false, true, false, false));
 		
 		System.out.println("------------");
