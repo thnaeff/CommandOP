@@ -309,6 +309,19 @@ public class CommandOP extends CmdLnBase {
 	public boolean parse(String[] args) throws CommandOPError {
 		this.args = args;
 		chainHead = null;
+		
+		//Reset items in case the parsing has already been executed once 
+		//on this object
+		
+		unknownArguments.clear();
+		
+		for (CmdLnOption item : options.values()) {
+			item.reset();
+		}
+		
+		for (CmdLnParameter item : parameters.values()) {
+			item.reset();
+		}
 				
 		createPreParsedChain(args);
 		

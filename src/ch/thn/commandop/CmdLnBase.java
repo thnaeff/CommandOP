@@ -105,6 +105,18 @@ public abstract class CmdLnBase {
 	}
 	
 	/**
+	 * Resets the values and the parsed flag so that the item 
+	 * can be reused again for parsing.
+	 * 
+	 * 
+	 */
+	protected void reset() {
+		values.clear();
+		
+		isParsed = false;
+	}
+	
+	/**
 	 * Sets the parent item of the tree
 	 * 
 	 * @param parent
