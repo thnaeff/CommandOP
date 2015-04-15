@@ -130,5 +130,10 @@ public class PreParsedItem {
 		return null;
 	}
 	
+	@Override
+	public String toString() {
+		return "name=" + name + ", value=" + value;
+	}
+	
 
 }

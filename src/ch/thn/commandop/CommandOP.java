@@ -22,6 +22,10 @@ import java.util.LinkedList;
 
 
 /**
+ * 
+ * 
+ * 
+ * 
  * @author Thomas Naeff (github.com/thnaeff)
  *
  */
@@ -460,13 +464,17 @@ public class CommandOP extends CmdLnBase {
 		boolean noOptionParameters = true;		
 		
 		while (currentChain != null) {
-			
+
 			if (currentChain.isOption() || currentChain.isShortOption() || noOptionParameters) {
+				//If it is an option it means that the "tree" starts from the beginning because an 
+				//option is the first item
+								
 				if (currentItem != null) {
+					//Remember the last item before the current item is retrieved
 					previousItem = currentItem;
 				}
 				
-				//It's an option or a NoOptionParameters, so take the item from the root
+				//It's an option or a NoOptionParameter, so take the item from the root
 				currentItem = children.get(currentChain.getName());
 				
 				if (noOptionParameters) {
@@ -476,6 +484,7 @@ public class CommandOP extends CmdLnBase {
 					noOptionParameters = !(currentChain.isOption() || currentChain.isShortOption());
 				}
 			} else {
+				//Parameter				
 				if (currentItem == null) {
 					if (previousItem == null) {
 						previousItem = children.get(currentChain.getName());
@@ -488,8 +497,8 @@ public class CommandOP extends CmdLnBase {
 				}
 				
 				
-				//It's not an option, so either it is a child of the current item
-				//or it's an item on the same level or on a higher level
+				//It's not an option, so either it is a child of the current item, 
+				//an item on the same level or a child of an item on a higher level
 				if (currentItem.hasChild(currentChain.getName())) {
 					currentItem = currentItem.getChild(currentChain.getName());
 				} else {
@@ -508,8 +517,7 @@ public class CommandOP extends CmdLnBase {
 					}
 					
 					if (!found) {
-						//The item has not been found in the defined items. It 
-						//must be a value of a multi value item
+						//The item has not been found in the defined items
 						currentItem = null;
 					}
 					
@@ -520,15 +528,14 @@ public class CommandOP extends CmdLnBase {
 			//If a defined item has been found, set its data
 			if (currentItem != null) {
 				
+				//Check if current command line item type matches the type of the defined item
 				if (currentChain.isOption() != currentItem.isOption()
 						|| currentChain.isShortOption() != currentItem.isShortOption()
 						|| currentChain.isParameter() != currentItem.isParameter()) {
-					if (currentChain.isOption()) {
-						info("Item " + currentChain.getName() + " is given as " + currentChain.getTypeDescString() + " on the command line, but it is defined as " + currentItem.getTypeDescString() + ".");
-					} else {
-						info("Item " + currentItem.getName() + " is defined as " + currentItem.getTypeDescString() + ", but it is given as " + currentChain.getTypeDescString() + " on the command line.");
-					}
+					
+					info("Item " + currentItem.getName() + " is defined as " + currentItem.getTypeDescString() + ", but it is given as " + currentChain.getTypeDescString() + " on the command line.");
 				}
+				
 				
 				String errormsg = currentItem.setValue(currentChain.getValue());
 				
@@ -543,19 +550,20 @@ public class CommandOP extends CmdLnBase {
 					currentItem.setCmdLnPos(currentChain.getChainPos());
 				}
 			} else {
-				if (previousItem != null && previousItem.isMultiValueItem()) {
+				//Defined item not found. It could be the value of a multi value item.
+								
+				//It can only be the value of a multi value item if the previous item 
+				//is such a multi value item and if the current item is not given as 
+				//name=value pair
+				if (previousItem != null && previousItem.isMultiValueItem() 
+						&& currentChain.getValue() == null && currentChain.getName() != null) {
 					//If the previous item was a multi value item and the current item 
 					//has not been found, it is assumed that the current item is actually 
 					//a value of the multi value item, thus the name is the value
 					
-					String value = null;
-					if (currentChain.getValue() != null) {
-						//The values of the multi value item are given as "name1=value1 name2=value2"
-						value = currentChain.getValue();
-					} else {
-						//The values of the multi value item are given as "value1 value2"
-						value = currentChain.getName();
-					}
+					//The values of the multi value item are given as "value1 value2"
+					String value = currentChain.getName();
+					
 					
 					String errormsg = previousItem.addMultiValue(value);
 					
@@ -563,26 +571,19 @@ public class CommandOP extends CmdLnBase {
 						error(errormsg);
 					}			
 				} else {
-					//If there is a value it should have been assigned already
-					//If there is not next item, nothing else can be added
-					if (currentChain.getValue() != null || previousItem == null || previousItem.getNextItem() == null) {
-						if (previousItem != null) {
-							if (previousItem.isParameter() && previousItem.hasParent()) {
-								error("Unknown argument '" + currentChain.getName() + "' given for option '" + previousItem.getParent().getName() + "'");
-							} else if (previousItem.isOption() || previousItem.isShortOption()) {
-								error("Unknown argument '" + currentChain.getName() + "' given for option '" + previousItem.getName() + "'");
-							} else {
-								error("Unknown argument '" + currentChain.getName() + "' given as no-option-parameter.");
-							}
+					//It is not the value of a multi value item
+					
+					if (previousItem != null) {
+						if (previousItem.isParameter() && previousItem.hasParent()) {
+							error("Unknown argument '" + currentChain.getName() + "' given for option '" + previousItem.getParent().getName() + "'");
+						} else if (previousItem.isOption() || previousItem.isShortOption()) {
+							error("Unknown argument '" + currentChain.getName() + "' given for option '" + previousItem.getName() + "'");
+						} else {
+							error("Unknown argument '" + currentChain.getName() + "' given as no-option-parameter.");
 						}
-						
-						unknownArguments.put(currentChain.getName(), currentChain);
-					} else {
-						//No value given -> it is just assumed that the given item 
-						//is only the value for the next item
-						currentItem = previousItem.getNextItem();
-						currentItem.setValue(currentChain.getName());
 					}
+					
+					unknownArguments.put(currentChain.getName(), currentChain);
 				}
 			}
 			

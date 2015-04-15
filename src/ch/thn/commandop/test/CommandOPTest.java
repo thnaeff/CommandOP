@@ -21,9 +21,9 @@ public class CommandOPTest {
 		//- Parameters can also be defined without a parent option. Those "optionless" parameters 
 		//  have to appear at the beginning of the command line.
 		
-		//args = "optionless1 optionless2=value -abc --option1 param11 param12=value --option2 param21 param211 param22=value -s - --  stuff ".split(" ");
-		args = "-ca --atest=aliasvalue --option1 param12=123 --option3 unknownparam=value --option2=o2 param21=21 param211=p211 param22".split(" ");
-//		args = "optionless2 --atest=test --option3 value1 value2 value3 param31=31 param311=311 param32=32 --option2=o2".split(" ");
+//		args = "optionless1 optionless2=value -abc --option1 param11 param12=value --option2 param21 param211 param22=value -s - --  stuff ".split(" ");
+//		args = "-ca --atest=aliasvalue --option1 param12=123 --option3 unknownparam=value3 multivalue1 multivalue2 --option2=o2 param21=21 param211=p211 param22=22".split(" ");
+		args = "optionless2 --atest=test --option3 value1 value2 value3 param31=31 param311=311 param32=32 --option2=o2".split(" ");
 				
 		
 		CommandOP cmdop = new CommandOP();
@@ -36,9 +36,9 @@ public class CommandOPTest {
 		
 		//An option (with -- long or - short prefix). An option can have any number 
 		//of parameters as children
-		cmdop.addOption("a", "short param a").setAsBoolean().setMandatory();
+		cmdop.addOption("a", "short param a, boolean").setAsBoolean().setMandatory();
 		
-		cmdop.addOption("c", "def", "short param c").setValueRequired();
+		cmdop.addOption("c", "def", "short param c, not boolean").setValueRequired();
 		
 		cmdop.addOption("x", "defx", "some param x");
 		

@@ -29,9 +29,6 @@ import ch.thn.commandop.validator.CommandOPValidator;
  */
 public abstract class CmdLnBase {
 	
-	//TODO allow multi var items, like "server 65001 localhost"
-	//maybe look up variables from the parameter until the next known option/parameter?
-	
 	public static String OPTION_DESC = "option (--)";
 	public static String SHORTOPTION_DESC = "short option (-)";
 	public static String PARAMETER_DESC = "parameter";
