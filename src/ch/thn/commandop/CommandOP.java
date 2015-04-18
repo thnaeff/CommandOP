@@ -382,8 +382,7 @@ public class CommandOP extends CmdLnItem {
 	 * @param args
 	 * @param overwriteParsed If set to <code>true</code>, items which have already
 	 * been parsed by a previous call to parse() will be overwritten. If set to <code>false</code>,
-	 * items which have already been parsed will not be overwritten (it will generate
-	 * an info message if an item is found twice).
+	 * items which have already been parsed will not be overwritten.
 	 * @return <code>true</code> if parsing went through without any errors, or
 	 * <code>false</code> if there are parsing errors.
 	 * @throws CommandOPError
@@ -425,8 +424,7 @@ public class CommandOP extends CmdLnItem {
 	 * @param properties
 	 * @param overwriteParsed If set to <code>true</code>, items which have already
 	 * been parsed by a previous call to parse() will be overwritten. If set to <code>false</code>,
-	 * items which have already been parsed will not be overwritten (it will generate
-	 * an info message if an item is found twice).
+	 * items which have already been parsed will not be overwritten.
 	 * @return
 	 */
 	public boolean parse(CmdLnItem item, Properties properties, boolean overwriteParsed) {
@@ -442,23 +440,7 @@ public class CommandOP extends CmdLnItem {
 			i = i.getParent();
 		}
 
-		//Now add the properties after the given item
-		Set<Entry<Object, Object>> entries = properties.entrySet();
-		int insertIndex = path.size();
-		for (Entry<Object, Object> entry : entries) {
-			String s = entry.getKey().toString();
-
-			//Only add a value if there is one
-			Object value = entry.getValue();
-			if (value != null && value.toString().length() > 0) {
-				s = s + "=" + entry.getValue().toString();
-			}
-
-			//Somehow the properties entry set is always returned in reverse order
-			//(reverse to the order in the properties file). However, since it is a set
-			//the order is not guaranteed...
-			path.add(insertIndex, s);
-		}
+		path.addAll(propertiesToList(properties));
 
 		//Now parse the generated command line
 		return parse(path.toArray(new String[path.size()]), overwriteParsed);
@@ -482,8 +464,7 @@ public class CommandOP extends CmdLnItem {
 	 * @param properties
 	 * @param overwriteParsed If set to <code>true</code>, items which have already
 	 * been parsed by a previous call to parse() will be overwritten. If set to <code>false</code>,
-	 * items which have already been parsed will not be overwritten (it will generate
-	 * an info message if an item is found twice).
+	 * items which have already been parsed will not be overwritten.
 	 * @return
 	 */
 	public boolean parse(Properties properties, boolean overwriteParsed) {
@@ -499,6 +480,70 @@ public class CommandOP extends CmdLnItem {
 	 */
 	public boolean parse(Properties properties) {
 		return parse(this, properties, true);
+	}
+
+	/**
+	 * This method allows for a more flexible way of parsing command line parameters
+	 * and properties. The linked list gives the possibility to combine parameters
+	 * from the command line array and from properties etc. and easily allows adding of
+	 * more parameters programmatically.<br />
+	 * <br />
+	 * <br />
+	 * Hint: {@link CommandOP#propertiesToList(Properties)} could be helpful
+	 * 
+	 * @param cmd A linked list of command line arguments
+	 * @param overwriteParsed If set to <code>true</code>, items which have already
+	 * been parsed by a previous call to parse() will be overwritten. If set to <code>false</code>,
+	 * items which have already been parsed will not be overwritten.
+	 * @return
+	 */
+	public boolean parse(LinkedList<String> cmd, boolean overwriteParsed) {
+		return parse(cmd.toArray(new String[cmd.size()]), overwriteParsed);
+	}
+
+	/**
+	 * This method allows for a more flexible way of parsing command line parameters
+	 * and properties. The linked list gives the possibility to combine parameters
+	 * from the command line array and from properties etc. and easily allows adding of
+	 * more parameters programmatically.<br />
+	 * When executed repeatedly, new data is added and old data is overwritten.
+	 * <br />
+	 * <br />
+	 * Hint: {@link CommandOP#propertiesToList(Properties)} could be helpful
+	 * 
+	 * @param cmd
+	 * @return
+	 */
+	public boolean parse(LinkedList<String> cmd) {
+		return parse(cmd.toArray(new String[cmd.size()]), true);
+	}
+
+	/**
+	 * Puts all properties into a list as key=value pairs
+	 * 
+	 * @param properties
+	 * @return
+	 */
+	public static LinkedList<String> propertiesToList(Properties properties) {
+		LinkedList<String> list = new LinkedList<String>();
+		Set<Entry<Object, Object>> entries = properties.entrySet();
+
+		for (Entry<Object, Object> entry : entries) {
+			String s = entry.getKey().toString();
+
+			//Only add a value if there is one
+			Object value = entry.getValue();
+			if (value != null && value.toString().length() > 0) {
+				s = s + "=" + entry.getValue().toString();
+			}
+
+			//Somehow the properties entry set is always returned in reverse order
+			//(reverse to the order in the properties file). However, since properties
+			//are a set the order might not be guaranteed...
+			list.add(0, s);
+		}
+
+		return list;
 	}
 
 	/**
@@ -688,8 +733,8 @@ public class CommandOP extends CmdLnItem {
 					//"Item not found"
 					currentItem = null;
 				} else {
-					//Only set value if overwrite allowed
-					if (overwriteParsed) {
+					//Only set value if not yet parsed or overwrite allowed
+					if (!currentItem.isParsed() || overwriteParsed) {
 						String errormsg = currentItem.setValue(currentChain.getValue());
 
 						if (errormsg != null) {
