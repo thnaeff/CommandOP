@@ -80,6 +80,10 @@ public class CommandOPTest {
 		cmdop.addGroup(group2);
 
 		cmdop.exceptionAtFirstError(false);
+
+		//Test for repeated parsing
+		cmdop.parse(args);
+
 		try {
 			if (!cmdop.parse(args)) {
 				System.err.println("---> Parsing errors");

@@ -318,7 +318,8 @@ public class CommandOP extends CmdLnBase {
 	}
 
 	/**
-	 * Returns all the error messages of the errors which occurred during parsing
+	 * Returns all the error messages of the errors which occurred during the
+	 * last parsing.
 	 * 
 	 * @return
 	 */
@@ -327,7 +328,8 @@ public class CommandOP extends CmdLnBase {
 	}
 
 	/**
-	 * Returns all the info messages of the errors which occurred during parsing
+	 * Returns all the info messages of the errors which occurred during the
+	 * last parsing.
 	 * 
 	 * @return
 	 */
@@ -336,30 +338,76 @@ public class CommandOP extends CmdLnBase {
 	}
 
 	/**
-	 * This method does all the steps required for the parsing.
+	 * Resets all options and parameters (clears all values and resets all states)
 	 * 
-	 * @param args
-	 * @return <code>true</code> if parsing went through without any errors, or
-	 * <code>false</code> if there are parsing errors.
-	 * @throws CommandOPError
 	 */
-	public boolean parse(String[] args) throws CommandOPError {
-		this.args = args;
-		chainHead = null;
-
-		//Reset items in case the parsing has already been executed once
-		//on this object
-
+	@Override
+	public void reset() {
 		unknownArguments.clear();
-		errors.clear();
-		info.clear();
 
 		for (CmdLnOption item : options.values()) {
 			item.reset();
+			resetAll(item.getChildren(), false);
 		}
 
 		for (CmdLnParameter item : parameters.values()) {
 			item.reset();
+			resetAll(item.getChildren(), false);
+		}
+
+		super.reset();
+	}
+
+	/**
+	 * Resets all items in the map and also all children
+	 * 
+	 * @param children
+	 * @param isParsedOnly
+	 */
+	private void resetAll(HashMap<String, CmdLnBase> children, boolean isParsedOnly) {
+		for (CmdLnBase child : children.values()) {
+			if (isParsedOnly) {
+				child.resetIsParsed();
+			} else {
+				child.reset();
+			}
+
+			//Reset children of the current item
+			resetAll(child.getChildren(), isParsedOnly);
+		}
+	}
+
+	/**
+	 * This method parses the command line arguments.<br />
+	 * When executed repeatedly, new data is added and old data is overwritten.
+	 * 
+	 * @param args
+	 * @param overwriteParsed If set to <code>true</code>, items which have already
+	 * been parsed by a previous call to parse() will be overwritten. If set to <code>false</code>,
+	 * items which have already been parsed will not be overwritten (it will generate
+	 * an info message if an item is found twice).
+	 * @return <code>true</code> if parsing went through without any errors, or
+	 * <code>false</code> if there are parsing errors.
+	 * @throws CommandOPError
+	 */
+	public boolean parse(String[] args, boolean overwriteParsed) throws CommandOPError {
+		this.args = args;
+		chainHead = null;
+
+		errors.clear();
+		info.clear();
+
+		if (overwriteParsed) {
+			//Only reset the isParsed flags so that values will be overwritten
+			for (CmdLnOption item : options.values()) {
+				item.resetIsParsed();
+				resetAll(item.getChildren(), true);
+			}
+
+			for (CmdLnParameter item : parameters.values()) {
+				item.resetIsParsed();
+				resetAll(item.getChildren(), true);
+			}
 		}
 
 		createPreParsedChain(args);
@@ -371,6 +419,18 @@ public class CommandOP extends CmdLnBase {
 		return !(errors.size() > 0);
 	}
 
+	/**
+	 * This method parses the command line arguments.<br />
+	 * When executed repeatedly, new data is added and old data is overwritten.
+	 * 
+	 * @param args
+	 * @return <code>true</code> if parsing went through without any errors, or
+	 * <code>false</code> if there are parsing errors.
+	 * @throws CommandOPError
+	 */
+	public boolean parse(String[] args) throws CommandOPError {
+		return parse(args, true);
+	}
 
 	/**
 	 * This method validates the parsed items
