@@ -1,7 +1,16 @@
 # CommandOP
 **Commandline Option Parser**
 
-With CommandOP you get a small Java library which parses [command line arguments](http://en.wikipedia.org/wiki/Command-line_argument#Arguments). The main advantage of CommandOP is that options and parameters can be structured in a unlimited tree-like construct. Many other command line parsers only support the traditional flat structures (often with optional/mandatory options, which would be equal to a tree-structure with maximal one branch). Furthermore, options in CommandOP can either be given in their defined order (--option v1 v1...) or as key/value pairs (--option o2=v2 o1=v1...) and CommandOP supports variable argument lists with a defined min/max number of arguments.
+With CommandOP you get a small Java library which parses [command line arguments](http://en.wikipedia.org/wiki/Command-line_argument#Arguments). The main advantage of CommandOP is that options and parameters can be structured in a unlimited tree-like construct. This allows for if-then relations (parameters are only allowed if their parent parameter/option is given). Include and exclude groups are also supported. Many other command line parsers only support the traditional flat structures (often just with optional/mandatory options). Options in CommandOP are given as key/value pairs (--option o2=v2 o1=v1...) and CommandOP supports variable argument lists with a defined min/max number of arguments (e.g. --option value1 value2 value3).
+
+Features:
+* Short (-) and long (--) options (short options can be combined, e.g. -abc instead of -a -b -c)
+* If-then relations
+* Include and exclude groups
+* Boolean items
+* Mandatory items and items with a mandatory value
+* Value validators
+* Aliases
 
 
 Command line parsing prepares command line arguments in a way that they are easily accessible by program logic. CommandOP parses and validates those arguments using a user defined structure. Following steps are needed for the parsing:
@@ -22,11 +31,10 @@ option1, option2, option3, a, b, c, d
 ```
 
 
-Here are two possible command lines we want to parse, with long (--) and short (-) options:
+Here is a possible command lines we want to parse, with long (--) and short (-) options:
 
 ```
 --option1 o11 o12 o13 --option2=o2 -abc
-option1 o11 o12 o13 option2 o2 -abc
 ```
 
 
@@ -48,7 +56,7 @@ This is a very easy approach and might fit many needs. But how about more comple
 
 Lets look at an extended server/client example to show the power of CommandOP:
 
-Assuming that the following tree structure is defined in the source code (corresponds to step 1 mentioned at the beginning):
+Assuming that the following tree structure is defined in the source code:
 
 ```
 server                   (boolean, only allowed if client not given)
@@ -106,13 +114,15 @@ Command line arguments can be parsed with `cmdop.parse(args)`. However, since th
 1. Use `cmdop.getErrorMessages()` to get all the error messages (`parse(args)` returns `false` if there are any parsing errors). This parses the whole file and stores the error messages for retrieval.
 2. Set `cmdop.exceptionAtFirstError(true)` and surround `parse(args)` with a try-catch block to catch eventual parsing errors. This stops the parsing when the first error occures and throws a `CommandOPError`.
 
+CommandOP also generates informational messages (for example for unknown parameters, mismatching definitions etc.). These messages can be retrieved with `cmdop.getInfoMessages()` and mostly show skipped items. An error message is generated if an item is found but it does not match the item definitions, an informational message is generated if an item is ignored.
+
 
 ### Printing useful information
 
 The `CommandOPPrinter` class has some useful methods to print information about the structure and the parsing. The printing can be requested in flat or structured form.
-* `getArgs()` returns all the given the command line arguments as string
+* `printer.getArgs()` returns all the given the command line arguments as string
 * `printer.getPreParsed(boolean)` returns a string showing the pre-parsed state. The pre-parser parses *all* the options and parameters and their values from the given command line arguments and tries to categorize them as \[option\] or \[param\]
-* `printer.getDefinedItems(boolean, boolean, boolean, boolean)` Shows the whole structure as it has been defined. Any parameters/options which have been given in the command line arguments but which could not be matched with the structure are no shown. Furthermore, mandatory items are marked with an asteriks (*), the method flags can be used to show a flat structure, to show/hide values and descriptions and to hide parameters/options which have been set to `setHiddenInPrint()`.
+* `printer.getDefinedItems(boolean, boolean, boolean, boolean)` Shows the whole structure and parsed values as it has been defined. Optional items are enclosed in brackets []. The boolean method parameters can be used to show a flat structure, to show/hide values and descriptions and to hide parameters/options which have been set to `setHiddenInPrint()`.
 * `printer.getHelpText()` simply calls `getDefinedItems(...)` with the right flags set to create a pretty help text output
 
 Here is the output of `printer.getDefinedItems(true, false, false, false)` and `getHelpText()`:
