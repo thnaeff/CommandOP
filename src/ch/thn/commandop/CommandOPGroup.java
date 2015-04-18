@@ -40,7 +40,7 @@ public class CommandOPGroup {
 	
 	private int mode = -1;
 	
-	private LinkedHashMap<String, CmdLnBase> items = null;
+	private LinkedHashMap<String, CmdLnItem> items = null;
 	
 	private CommandOP cmdop = null;
 	
@@ -57,7 +57,7 @@ public class CommandOPGroup {
 		this.mode = mode;
 		this.cmdop = cmdop;
 		
-		items = new LinkedHashMap<String, CmdLnBase>();
+		items = new LinkedHashMap<String, CmdLnItem>();
 		
 	}
 	
@@ -85,7 +85,7 @@ public class CommandOPGroup {
 	 * @param item
 	 * @return
 	 */
-	public boolean addMember(CmdLnBase item) {
+	public boolean addMember(CmdLnItem item) {
 		if (items.containsKey(item.getName())) {
 			return false;
 		}
@@ -107,11 +107,11 @@ public class CommandOPGroup {
 	 */
 	public boolean addMember(String itemName) {
 		
-		LinkedList<CmdLnBase> flatList = CommandOPTools.createFlatList(cmdop.getChildren());
+		LinkedList<CmdLnItem> flatList = CommandOPTools.createFlatList(cmdop.getChildren());
 		
-		CmdLnBase itemToAdd = null;
+		CmdLnItem itemToAdd = null;
 
-		for (CmdLnBase item : flatList) {
+		for (CmdLnItem item : flatList) {
 			if (item.getName().equals(itemName)) {
 				if (itemToAdd == null) {
 					itemToAdd = item;
@@ -136,7 +136,7 @@ public class CommandOPGroup {
 	 * 
 	 * @return
 	 */
-	protected LinkedHashMap<String, CmdLnBase> getItems() {
+	protected LinkedHashMap<String, CmdLnItem> getItems() {
 		return items;
 	}
 

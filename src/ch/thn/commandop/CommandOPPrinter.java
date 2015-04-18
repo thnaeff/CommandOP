@@ -107,17 +107,17 @@ public class CommandOPPrinter {
 		
 		//Do not use cmdop.getChildren() here, because the no-option-parameters 
 		//should appear in front of the rest
-		LinkedHashMap<String, CmdLnBase> all = new LinkedHashMap<String, CmdLnBase>();
+		LinkedHashMap<String, CmdLnItem> all = new LinkedHashMap<String, CmdLnItem>();
 		all.putAll(cmdop.getParameters());
 		all.putAll(cmdop.getOptions());
 		
 		LinkedList<StringBuilder> lines = new LinkedList<StringBuilder>();
-		LinkedList<CmdLnBase> flatList = CommandOPTools.createFlatList(all);
+		LinkedList<CmdLnItem> flatList = CommandOPTools.createFlatList(all);
 		
 		int longestLine = 0;
 		
 		
-		for (CmdLnBase item : flatList) {
+		for (CmdLnItem item : flatList) {
 			
 			if (hideHidden && item.isHiddenInPrint()) {
 				continue;
@@ -147,7 +147,7 @@ public class CommandOPPrinter {
 			
 			//Short options (only if no flat output)
 			if (!flat && item.hasAlias()) {				
-				for (CmdLnBase alias : item.getAlias().values()) {
+				for (CmdLnItem alias : item.getAlias().values()) {
 					if (!alias.isShortOption()) {
 						continue;
 					}
@@ -201,7 +201,7 @@ public class CommandOPPrinter {
 				String commaToAppend = null;
 				StringBuilder sbAliases = new StringBuilder();
 				
-				for (CmdLnBase alias : item.getAlias().values()) {
+				for (CmdLnItem alias : item.getAlias().values()) {
 					if (alias.isShortOption()) {
 						continue;
 					}

@@ -120,11 +120,11 @@ public class PreParsedItem {
 	 */
 	public String getTypeDescString() {
 		if (isOption) {
-			return CmdLnBase.OPTION_DESC;
+			return CmdLnItem.OPTION_DESC;
 		} else if (isShortOption) {
-			return CmdLnBase.SHORTOPTION_DESC;
+			return CmdLnItem.SHORTOPTION_DESC;
 		} else if (isParameter) {
-			return CmdLnBase.PARAMETER_DESC;
+			return CmdLnItem.PARAMETER_DESC;
 		}
 		
 		return null;

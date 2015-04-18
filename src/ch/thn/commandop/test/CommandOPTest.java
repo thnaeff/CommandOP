@@ -1,6 +1,10 @@
 package ch.thn.commandop.test;
 
-import java.util.LinkedList;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.List;
+import java.util.Properties;
 
 import ch.thn.commandop.CmdLnValue;
 import ch.thn.commandop.CommandOP;
@@ -21,7 +25,7 @@ public class CommandOPTest {
 		//- Parameters can also be defined without a parent option. Those "optionless" parameters
 		//  have to appear at the beginning of the command line.
 
-		args = "optionless1 optionless2=value -abc --option1 param11 param12=value --option2=a param21=a param211=211 param22=value -s - --  stuff ".split(" ");
+		args = "optionless1 optionless2=value -abc --option1 param11 param12=value --option2=a param21=a param211=211 param22=value -s - --  stuff --multivalue cmd1 cmd2".split(" ");
 		//		args = "x=test y z -ca --atest=aliasvalue --option1 param12=123 --option3 unknownparam=value3 multivalue1 multivalue2 --option2=o2 param21=21 param211=p211 param22=22".split(" ");
 		//		args = "optionless2 --atest=test --option3 value1 value2 value3 param31=31 param311=311 param32=32 --option2=o2".split(" ");
 
@@ -33,6 +37,11 @@ public class CommandOPTest {
 		//Just a parameter (without -- or - prefix). This parameter is directly added
 		//to the main CommandOP object which makes it a "optionless" parameter
 		cmdop.addParameter("optionless2", "somevalue", "Just a parameter without option").setMandatory();
+
+		cmdop.addParameter("property4", "A parameter from the properties file").setMandatory();
+		cmdop.addParameter("property3", "Another parameter from the properties file").setMandatory().setAsBoolean();
+
+		cmdop.addOption("multivalue", "Multiple values, once from a properties file and once from the command line").setAsMultiValueItem();
 
 		//An option (with -- long or - short prefix). An option can have any number
 		//of parameters as children
@@ -81,32 +90,77 @@ public class CommandOPTest {
 
 		cmdop.exceptionAtFirstError(false);
 
-		//Test for repeated parsing
-		cmdop.parse(args);
+		//Parsing properties
+		Properties properties_multivalue = new Properties();
+		try {
+			properties_multivalue.load(new FileInputStream("Properties_multivalue.ini"));
 
+			try {
+				if (!cmdop.parse(cmdop.getChild("multivalue"), properties_multivalue)) {
+					printMsgs("--> Parsing errors", cmdop.getErrorMessages(), System.out);
+				}
+			} catch (CommandOPError e) {
+				e.printStackTrace();
+			}
+
+			printMsgs("--> Parsing info", cmdop.getInfoMessages(), System.out);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+
+		printInfo(cmdop);
+
+		System.out.println("===========================================================");
+
+		//Parsing properties
+		Properties properties = new Properties();
+		try {
+			properties.load(new FileInputStream("Properties.ini"));
+
+			try {
+				if (!cmdop.parse(properties)) {
+					printMsgs("--> Parsing errors", cmdop.getErrorMessages(), System.out);
+				}
+			} catch (CommandOPError e) {
+				e.printStackTrace();
+			}
+
+			printMsgs("--> Parsing info", cmdop.getInfoMessages(), System.out);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+
+		printInfo(cmdop);
+
+		System.out.println("===========================================================");
+
+		//Parsing command line arguments
 		try {
 			if (!cmdop.parse(args)) {
-				System.err.println("---> Parsing errors");
-				LinkedList<String> errors = cmdop.getErrorMessages();
-				for (String s : errors) {
-					System.err.println(s);
-				}
-
+				printMsgs("--> Parsing errors", cmdop.getErrorMessages(), System.out);
 			}
 		} catch (CommandOPError e) {
 			e.printStackTrace();
 		}
 
-		LinkedList<String> info = cmdop.getInfoMessages();
-		if (info.size() > 0) {
-			System.out.println("---> Parsing info");
-			for (String s : info) {
-				System.out.println(s);
-			}
+		printMsgs("--> Parsing info", cmdop.getInfoMessages(), System.out);
 
-			System.out.println(" ");
-		}
+		printInfo(cmdop);
 
+		System.out.println("------------");
+
+		CmdLnValue item0 = cmdop.getParameter("optionless2");
+		System.out.println(item0.getName() + "=" + item0.getValue());
+
+		CmdLnValue item1 = cmdop.getOption("atest");
+		System.out.println(item1.getName() + "=" + item1.getValue());
+
+		CmdLnValue item2 = cmdop.getOption("option2").getChild("param21").getChild("param211");
+		System.out.println(item2.getName() + "=" + item2.getValue());
+
+	}
+
+	public static void printInfo(CommandOP cmdop) {
 		CommandOPPrinter printer = new CommandOPPrinter(cmdop);
 
 		System.out.println("args=" + printer.getArgs());
@@ -120,18 +174,23 @@ public class CommandOPTest {
 		System.out.println(printer.getDefinedItems(false, true, false, false));
 
 		System.out.println(cmdop.getUnknownArguments());
+	}
 
-		System.out.println("------------");
+	/**
+	 * 
+	 * @param title
+	 * @param list
+	 */
+	public static void printMsgs(String title, List<String> list, PrintStream stream) {
+		if (list.size() > 0) {
+			stream.println(title);
 
-		CmdLnValue item0 = cmdop.getParameter("optionless2");
-		System.out.println(item0.getName() + "=" + item0.getValue());
+			for (String s : list) {
+				stream.println(s);
+			}
 
-		CmdLnValue item1 = cmdop.getOption("atest");
-		System.out.println(item1.getName() + "=" + item1.getValue());
-
-		CmdLnValue item2 = cmdop.getOption("option2").getChild("param21").getChild("param211");
-		System.out.println(item2.getName() + "=" + item2.getValue());
-
+			stream.println(" ");
+		}
 	}
 
 }

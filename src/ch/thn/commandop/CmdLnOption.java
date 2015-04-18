@@ -35,7 +35,7 @@ public class CmdLnOption extends CmdLnParameter {
 	 * @param name
 	 * @param defaultValue
 	 * @param description
-	 * @see CmdLnBase#CmdLnBase(String, String, String)
+	 * @see CmdLnItem#CmdLnBase(String, String, String)
 	 */
 	public CmdLnOption(String name, String defaultValue, String description) {
 		super(name, defaultValue, description);
@@ -45,7 +45,7 @@ public class CmdLnOption extends CmdLnParameter {
 	 * 
 	 * @param name
 	 * @param description
-	 * @see CmdLnBase#CmdLnBase(String, String)
+	 * @see CmdLnItem#CmdLnBase(String, String)
 	 */
 	public CmdLnOption(String name, String description) {
 		super(name, null, description);
@@ -54,7 +54,7 @@ public class CmdLnOption extends CmdLnParameter {
 	/**
 	 * 
 	 * @param name
-	 * @see CmdLnBase#CmdLnBase(String)
+	 * @see CmdLnItem#CmdLnBase(String)
 	 */
 	public CmdLnOption(String name) {
 		super(name, null, null);
@@ -62,7 +62,7 @@ public class CmdLnOption extends CmdLnParameter {
 	
 	/**
 	 * 
-	 * @see CmdLnBase#CmdLnBase()
+	 * @see CmdLnItem#CmdLnBase()
 	 */
 	public CmdLnOption() {
 		super(null, null);

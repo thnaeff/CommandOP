@@ -20,14 +20,14 @@ package ch.thn.commandop;
  * @author Thomas Naeff (github.com/thnaeff)
  *
  */
-public class CmdLnValue extends CmdLnBase {
+public class CmdLnValue extends CmdLnItem {
 	
 	/**
 	 * 
 	 * @param name
 	 * @param defaultValue
 	 * @param description
-	 * @see CmdLnBase#CmdLnBase(String, String, String)
+	 * @see CmdLnItem#CmdLnBase(String, String, String)
 	 */
 	protected CmdLnValue(String name, String defaultValue, String description) {
 		super(name, defaultValue, description);
@@ -37,7 +37,7 @@ public class CmdLnValue extends CmdLnBase {
 	 * 
 	 * @param name
 	 * @param description
-	 * @see CmdLnBase#CmdLnBase(String, String)
+	 * @see CmdLnItem#CmdLnBase(String, String)
 	 */
 	protected CmdLnValue(String name, String description) {
 		super(name, null, description);
@@ -46,7 +46,7 @@ public class CmdLnValue extends CmdLnBase {
 	/**
 	 * 
 	 * @param name
-	 * @see CmdLnBase#CmdLnBase(String)
+	 * @see CmdLnItem#CmdLnBase(String)
 	 */
 	protected CmdLnValue(String name) {
 		super(name, null, null);
@@ -54,7 +54,7 @@ public class CmdLnValue extends CmdLnBase {
 	
 	/**
 	 * 
-	 * @see CmdLnBase#CmdLnBase()
+	 * @see CmdLnItem#CmdLnBase()
 	 */
 	protected CmdLnValue() {
 		super(null, null);

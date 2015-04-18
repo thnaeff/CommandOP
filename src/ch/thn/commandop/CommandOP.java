@@ -19,6 +19,9 @@ package ch.thn.commandop;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Set;
 
 
 /**
@@ -49,7 +52,7 @@ import java.util.LinkedList;
  * @author Thomas Naeff (github.com/thnaeff)
  *
  */
-public class CommandOP extends CmdLnBase {
+public class CommandOP extends CmdLnItem {
 
 
 	private PreParsedChain chainHead = null;
@@ -244,7 +247,7 @@ public class CommandOP extends CmdLnBase {
 	 * @return
 	 */
 	public boolean hasOption(String option) {
-		CmdLnBase item = options.get(option);
+		CmdLnItem item = options.get(option);
 
 		if (item.isParameter()) {
 			return false;
@@ -288,7 +291,7 @@ public class CommandOP extends CmdLnBase {
 	 * @return
 	 */
 	public boolean hasParameter(String parameter) {
-		CmdLnBase item = parameters.get(parameter);
+		CmdLnItem item = parameters.get(parameter);
 
 		if (item == null || !item.isParameter()) {
 			return false;
@@ -347,12 +350,12 @@ public class CommandOP extends CmdLnBase {
 
 		for (CmdLnOption item : options.values()) {
 			item.reset();
-			resetAll(item.getChildren(), false);
+			resetAll(item.getChildren());
 		}
 
 		for (CmdLnParameter item : parameters.values()) {
 			item.reset();
-			resetAll(item.getChildren(), false);
+			resetAll(item.getChildren());
 		}
 
 		super.reset();
@@ -362,18 +365,13 @@ public class CommandOP extends CmdLnBase {
 	 * Resets all items in the map and also all children
 	 * 
 	 * @param children
-	 * @param isParsedOnly
 	 */
-	private void resetAll(HashMap<String, CmdLnBase> children, boolean isParsedOnly) {
-		for (CmdLnBase child : children.values()) {
-			if (isParsedOnly) {
-				child.resetIsParsed();
-			} else {
-				child.reset();
-			}
+	private void resetAll(HashMap<String, CmdLnItem> children) {
+		for (CmdLnItem child : children.values()) {
+			child.reset();
 
 			//Reset children of the current item
-			resetAll(child.getChildren(), isParsedOnly);
+			resetAll(child.getChildren());
 		}
 	}
 
@@ -397,22 +395,9 @@ public class CommandOP extends CmdLnBase {
 		errors.clear();
 		info.clear();
 
-		if (overwriteParsed) {
-			//Only reset the isParsed flags so that values will be overwritten
-			for (CmdLnOption item : options.values()) {
-				item.resetIsParsed();
-				resetAll(item.getChildren(), true);
-			}
-
-			for (CmdLnParameter item : parameters.values()) {
-				item.resetIsParsed();
-				resetAll(item.getChildren(), true);
-			}
-		}
-
 		createPreParsedChain(args);
 
-		postParse();
+		postParse(overwriteParsed);
 
 		validate();
 
@@ -432,6 +417,90 @@ public class CommandOP extends CmdLnBase {
 		return parse(args, true);
 	}
 
+
+	/**
+	 * Parses the given properties as children of the given command line item.
+	 * 
+	 * @param item The item for which the properties should be parsed as children
+	 * @param properties
+	 * @param overwriteParsed If set to <code>true</code>, items which have already
+	 * been parsed by a previous call to parse() will be overwritten. If set to <code>false</code>,
+	 * items which have already been parsed will not be overwritten (it will generate
+	 * an info message if an item is found twice).
+	 * @return
+	 */
+	public boolean parse(CmdLnItem item, Properties properties, boolean overwriteParsed) {
+
+		LinkedList<String> path = new LinkedList<String>();
+		CmdLnItem i = item;
+
+		//Create the "tree" path from the root item to the given item
+		//Stop when reaching this (CommandOP)
+		while (i != null && i != this) {
+			//Going upwards
+			path.add(0, i.getCmdLnTypePrefix() + i.getName());
+			i = i.getParent();
+		}
+
+		//Now add the properties after the given item
+		Set<Entry<Object, Object>> entries = properties.entrySet();
+		int insertIndex = path.size();
+		for (Entry<Object, Object> entry : entries) {
+			String s = entry.getKey().toString();
+
+			//Only add a value if there is one
+			Object value = entry.getValue();
+			if (value != null && value.toString().length() > 0) {
+				s = s + "=" + entry.getValue().toString();
+			}
+
+			//Somehow the properties entry set is always returned in reverse order
+			//(reverse to the order in the properties file). However, since it is a set
+			//the order is not guaranteed...
+			path.add(insertIndex, s);
+		}
+
+		//Now parse the generated command line
+		return parse(path.toArray(new String[path.size()]), overwriteParsed);
+	}
+
+	/**
+	 * Parses the given properties as children of the given command line item.<br />
+	 * When executed repeatedly, new data is added and old data is overwritten.
+	 * 
+	 * @param item The item for which the properties should be parsed as children
+	 * @param properties
+	 * @return
+	 */
+	public boolean parse(CmdLnItem item, Properties properties) {
+		return parse(item, properties, true);
+	}
+
+	/**
+	 * Parses the given properties as non-option-parameters
+	 * 
+	 * @param properties
+	 * @param overwriteParsed If set to <code>true</code>, items which have already
+	 * been parsed by a previous call to parse() will be overwritten. If set to <code>false</code>,
+	 * items which have already been parsed will not be overwritten (it will generate
+	 * an info message if an item is found twice).
+	 * @return
+	 */
+	public boolean parse(Properties properties, boolean overwriteParsed) {
+		return parse(this, properties, overwriteParsed);
+	}
+
+	/**
+	 * Parses the given properties as non-option-parameters.<br />
+	 * When executed repeatedly, new data is added and old data is overwritten.
+	 * 
+	 * @param properties
+	 * @return
+	 */
+	public boolean parse(Properties properties) {
+		return parse(this, properties, true);
+	}
+
 	/**
 	 * This method validates the parsed items
 	 * 
@@ -439,9 +508,9 @@ public class CommandOP extends CmdLnBase {
 	 */
 	private void validate() throws CommandOPError {
 
-		LinkedList<CmdLnBase> itemsFlat = CommandOPTools.createFlatList(children);
+		LinkedList<CmdLnItem> itemsFlat = CommandOPTools.createFlatList(children);
 
-		for (CmdLnBase item : itemsFlat) {
+		for (CmdLnItem item : itemsFlat) {
 			//Mandatory
 			//If the item has a parent item, only validate it if the parent item is parsed too
 			if (!item.hasParent() || item.hasParent() && item.getParentInternal().isParsed()) {
@@ -472,7 +541,7 @@ public class CommandOP extends CmdLnBase {
 				//The given group items can not appear together
 
 				int numOfExisting = 0;
-				for (CmdLnBase item : group.getItems().values()) {
+				for (CmdLnItem item : group.getItems().values()) {
 
 					if (item.isParsed()) {
 						numOfExisting++;
@@ -500,7 +569,7 @@ public class CommandOP extends CmdLnBase {
 
 				boolean hasOneParsedItem = false;
 
-				for (CmdLnBase item : group.getItems().values()) {
+				for (CmdLnItem item : group.getItems().values()) {
 					if (group.getMode() == CommandOPGroup.MODE_INCLUDE ) {
 						if (!item.isParsed()) {
 							//One of the group items does not exist
@@ -534,13 +603,14 @@ public class CommandOP extends CmdLnBase {
 	 * for the corresponding defined item (or its alias). If a defined item is found,
 	 * its value is set.
 	 * 
+	 * @param overwriteParsed
 	 * @throws CommandOPError
 	 */
-	private void postParse() throws CommandOPError {
+	private void postParse(boolean overwriteParsed) throws CommandOPError {
 
 		PreParsedChain currentChain = chainHead;
-		CmdLnBase currentItem = null;
-		CmdLnBase previousItem = null;
+		CmdLnItem currentItem = null;
+		CmdLnItem previousItem = null;
 
 		while (currentChain != null) {
 
@@ -618,17 +688,20 @@ public class CommandOP extends CmdLnBase {
 					//"Item not found"
 					currentItem = null;
 				} else {
-					String errormsg = currentItem.setValue(currentChain.getValue());
+					//Only set value if overwrite allowed
+					if (overwriteParsed) {
+						String errormsg = currentItem.setValue(currentChain.getValue());
 
-					if (errormsg != null) {
-						//The returned string from setValue might contain the [INFO] prefix
-						if (errormsg.startsWith("[INFO] ")) {
-							info(errormsg.substring("[INFO] ".length()));
+						if (errormsg != null) {
+							//The returned string from setValue might contain the [INFO] prefix
+							if (errormsg.startsWith("[INFO] ")) {
+								info(errormsg.substring("[INFO] ".length()));
+							} else {
+								error(errormsg);
+							}
 						} else {
-							error(errormsg);
+							currentItem.setCmdLnPos(currentChain.getChainPos());
 						}
-					} else {
-						currentItem.setCmdLnPos(currentChain.getChainPos());
 					}
 				}
 

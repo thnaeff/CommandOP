@@ -19,33 +19,38 @@ package ch.thn.commandop;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.util.Vector;
 
 import ch.thn.commandop.validator.CommandOPValidator;
 
 /**
+ * The base class for any command line item ({@link CmdLnOption}, {@link CmdLnParameter})
+ * 
+ * 
  * @author Thomas Naeff (github.com/thnaeff)
  *
  */
-public abstract class CmdLnBase {
+public abstract class CmdLnItem {
 
 	public static String OPTION_DESC = "option (--)";
 	public static String SHORTOPTION_DESC = "short option (-)";
 	public static String PARAMETER_DESC = "parameter";
+	public static String OPTION_PREFIX = "--";
+	public static String SHORTOPTION_PREFIX = "-";
+	public static String PARAMETER_PREFIX = "";
 
-	private CmdLnBase parent = null;
-	private CmdLnBase aliasOf = null;	//The item of which this item is the alias of
+	private CmdLnItem parent = null;
+	private CmdLnItem aliasOf = null;	//The item of which this item is the alias of
 
 	protected CommandOPValidator validator = null;
 
-	protected LinkedHashMap<String, CmdLnBase> alias = null;		//The items which are set as alias
-	protected LinkedHashMap<String, CmdLnBase> children = null;
+	protected LinkedHashMap<String, CmdLnItem> alias = null;		//The items which are set as alias
+	protected LinkedHashMap<String, CmdLnItem> children = null;
 
 	private String description = null;
 	private String name = null;
 	private String defaultValue = null;
 
-	private Vector<String> values = null;
+	private LinkedList<String> values = null;
 
 	private boolean isParsed = false;
 	protected boolean isMandatory = false;
@@ -69,14 +74,14 @@ public abstract class CmdLnBase {
 	 * @param defaultValue
 	 * @param description
 	 */
-	protected CmdLnBase(String name, String defaultValue, String description) {
+	protected CmdLnItem(String name, String defaultValue, String description) {
 		this.name = name;
 		this.defaultValue = defaultValue;
 		this.description = description;
 
-		values = new Vector<String>();
-		children = new LinkedHashMap<String, CmdLnBase>();
-		alias = new LinkedHashMap<String, CmdLnBase>();
+		values = new LinkedList<String>();
+		children = new LinkedHashMap<String, CmdLnItem>();
+		alias = new LinkedHashMap<String, CmdLnItem>();
 
 	}
 
@@ -85,7 +90,7 @@ public abstract class CmdLnBase {
 	 * @param name
 	 * @param description
 	 */
-	protected CmdLnBase(String name, String description) {
+	protected CmdLnItem(String name, String description) {
 		this(name, null, description);
 	}
 
@@ -93,14 +98,14 @@ public abstract class CmdLnBase {
 	 * 
 	 * @param name
 	 */
-	protected CmdLnBase(String name) {
+	protected CmdLnItem(String name) {
 		this(name, null, null);
 	}
 
 	/**
 	 * 
 	 */
-	protected CmdLnBase() {
+	protected CmdLnItem() {
 		this(null, null);
 	}
 
@@ -117,19 +122,11 @@ public abstract class CmdLnBase {
 	}
 
 	/**
-	 * Resets only the isParsed flag
-	 * 
-	 */
-	protected void resetIsParsed() {
-		isParsed = false;
-	}
-
-	/**
 	 * Sets the parent item of the tree
 	 * 
 	 * @param parent
 	 */
-	protected void setParent(CmdLnBase parent) {
+	protected void setParent(CmdLnItem parent) {
 		this.parent = parent;
 
 		adjustLevel();
@@ -140,7 +137,7 @@ public abstract class CmdLnBase {
 	 * 
 	 * @return
 	 */
-	protected CmdLnBase getParent() {
+	protected CmdLnItem getParent() {
 		if (parent instanceof CommandOP) {
 			return null;
 		}
@@ -154,7 +151,7 @@ public abstract class CmdLnBase {
 	 * 
 	 * @return
 	 */
-	protected CmdLnBase getParentInternal() {
+	protected CmdLnItem getParentInternal() {
 		return parent;
 	}
 
@@ -218,7 +215,7 @@ public abstract class CmdLnBase {
 	 * 
 	 * @param aliasOf
 	 */
-	protected void setAliasOf(CmdLnBase aliasOf) {
+	protected void setAliasOf(CmdLnItem aliasOf) {
 		this.aliasOf = aliasOf;
 	}
 
@@ -227,7 +224,7 @@ public abstract class CmdLnBase {
 	 * 
 	 * @return
 	 */
-	protected CmdLnBase getAliasOf() {
+	protected CmdLnItem getAliasOf() {
 		return aliasOf;
 	}
 
@@ -242,7 +239,7 @@ public abstract class CmdLnBase {
 			level = 0;
 		}
 
-		for (CmdLnBase child : children.values()) {
+		for (CmdLnItem child : children.values()) {
 			child.adjustLevel();
 		}
 
@@ -275,12 +272,12 @@ public abstract class CmdLnBase {
 	 * @param childName
 	 * @return
 	 */
-	protected CmdLnValue getChild(String childName) {
+	public CmdLnValue getChild(String childName) {
 		if (!children.containsKey(childName)) {
 			throw new CommandOPError("Child parameter '" + childName + "' is not defined in '" + getName() + "'.");
 		}
 
-		CmdLnBase item = children.get(childName);
+		CmdLnItem item = children.get(childName);
 
 		if (item.isAlias()) {
 			return (CmdLnValue) item.getAliasOf();
@@ -296,7 +293,7 @@ public abstract class CmdLnBase {
 	 * 
 	 * @return
 	 */
-	protected LinkedHashMap<String, CmdLnBase> getChildren() {
+	protected LinkedHashMap<String, CmdLnItem> getChildren() {
 		return children;
 	}
 
@@ -453,23 +450,37 @@ public abstract class CmdLnBase {
 
 		if (value == null) {
 			if (isBoolean) {
-				this.values.add("true");
+				addValue("true");
 			} else {
-				this.values.add(null);
+				addValue(null);
 			}
 		} else {
 			if (isBoolean) {
 				if (value.toLowerCase().equals("true")) {
-					this.values.add("true");
+					addValue("true");
 				} else {
-					this.values.add("false");
+					addValue("false");
 				}
 			} else {
-				this.values.add(value);
+				addValue(value);
 			}
 		}
 
 		return null;
+	}
+
+	/**
+	 * Adds the value to the list of values, but only if it does not exist to avoid
+	 * multiple same values for multi value items
+	 * 
+	 * @param value
+	 */
+	private void addValue(String value) {
+		if (values.contains(value)) {
+			return;
+		}
+
+		values.add(value);
 	}
 
 	/**
@@ -516,7 +527,7 @@ public abstract class CmdLnBase {
 	 * 
 	 * @return
 	 */
-	protected CmdLnBase setAsOption() {
+	protected CmdLnItem setAsOption() {
 		isOption = true;
 		isShortOption = false;
 		isParameter = false;
@@ -541,7 +552,7 @@ public abstract class CmdLnBase {
 	 * 
 	 * @return
 	 */
-	protected CmdLnBase setAsShortOption() {
+	protected CmdLnItem setAsShortOption() {
 		isOption = false;
 		isShortOption = true;
 		isParameter = false;
@@ -564,7 +575,7 @@ public abstract class CmdLnBase {
 	 * 
 	 * @return
 	 */
-	protected CmdLnBase setAsParameter() {
+	protected CmdLnItem setAsParameter() {
 		isOption = false;
 		isShortOption = false;
 		isParameter = true;
@@ -582,10 +593,10 @@ public abstract class CmdLnBase {
 	}
 
 	/**
-	 * Returns a string which describes the type:
-	 * - option
-	 * - short option
-	 * - parameter
+	 * Returns a string which describes the type:<br />
+	 * - option (--)<br />
+	 * - short option (-)<br />
+	 * - parameter<br />
 	 * 
 	 * @return
 	 */
@@ -596,6 +607,26 @@ public abstract class CmdLnBase {
 			return SHORTOPTION_DESC;
 		} else if (isParameter) {
 			return PARAMETER_DESC;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the prefix which is needed on the command line:<br />
+	 * - option: "--"<br />
+	 * - short option: "-"<br />
+	 * - parameter: none<br />
+	 * 
+	 * @return
+	 */
+	public String getCmdLnTypePrefix() {
+		if (isOption) {
+			return OPTION_PREFIX;
+		} else if (isShortOption) {
+			return SHORTOPTION_PREFIX;
+		} else if (isParameter) {
+			return PARAMETER_PREFIX;
 		}
 
 		return null;
@@ -632,7 +663,7 @@ public abstract class CmdLnBase {
 	 * 
 	 * @return
 	 */
-	protected CmdLnBase setHiddenInPrint() {
+	protected CmdLnItem setHiddenInPrint() {
 		isHiddenInPrint = true;
 		return this;
 	}
@@ -683,7 +714,7 @@ public abstract class CmdLnBase {
 	 * @param aliasName
 	 * @return
 	 */
-	protected CmdLnBase getAlias(String aliasName) {
+	protected CmdLnItem getAlias(String aliasName) {
 		return alias.get(aliasName);
 	}
 
@@ -692,7 +723,7 @@ public abstract class CmdLnBase {
 	 * 
 	 * @return
 	 */
-	protected HashMap<String, CmdLnBase> getAlias() {
+	protected HashMap<String, CmdLnItem> getAlias() {
 		return alias;
 	}
 
@@ -782,12 +813,12 @@ public abstract class CmdLnBase {
 	 * 
 	 * @return
 	 */
-	protected CmdLnBase getNextItem() {
+	protected CmdLnItem getNextItem() {
 		if (parent == null) {
 			return null;
 		}
 
-		LinkedList<CmdLnBase> list = CommandOPTools.createFlatList(parent.getChildren());
+		LinkedList<CmdLnItem> list = CommandOPTools.createFlatList(parent.getChildren());
 
 		int index = 0;
 
@@ -824,14 +855,14 @@ public abstract class CmdLnBase {
 	 * 
 	 * @return
 	 */
-	protected CmdLnBase getPreviousItem() {
+	protected CmdLnItem getPreviousItem() {
 		if (parent == null) {
 			return null;
 		}
 
-		LinkedHashMap<String, CmdLnBase> parentChildren = parent.getChildren();
+		LinkedHashMap<String, CmdLnItem> parentChildren = parent.getChildren();
 
-		LinkedList<CmdLnBase> list = new LinkedList<CmdLnBase>(parentChildren.values());
+		LinkedList<CmdLnItem> list = new LinkedList<CmdLnItem>(parentChildren.values());
 
 		int index = 0;
 

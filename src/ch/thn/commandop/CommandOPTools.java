@@ -171,11 +171,11 @@ public class CommandOPTools {
 	 * @param items
 	 * @return
 	 */
-	public static LinkedList<CmdLnBase> createFlatList(HashMap<String, CmdLnBase> items) {
+	public static LinkedList<CmdLnItem> createFlatList(HashMap<String, CmdLnItem> items) {
 		
-		LinkedList<CmdLnBase> itemsFlat = new LinkedList<CmdLnBase>();
+		LinkedList<CmdLnItem> itemsFlat = new LinkedList<CmdLnItem>();
 		
-		for (CmdLnBase item : items.values()) {
+		for (CmdLnItem item : items.values()) {
 			itemsFlat.add(item);
 			
 			if (item.hasChildren()) {

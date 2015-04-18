@@ -16,7 +16,7 @@
  */
 package ch.thn.commandop.validator;
 
-import ch.thn.commandop.CmdLnBase;
+import ch.thn.commandop.CmdLnItem;
 
 /**
  * @author Thomas Naeff (github.com/thnaeff)
@@ -25,7 +25,7 @@ import ch.thn.commandop.CmdLnBase;
 public class NumberValidator extends CommandOPValidator {
 
 	@Override
-	public boolean validate(CmdLnBase item, String newValue, int multiValuePos) {
+	public boolean validate(CmdLnItem item, String newValue, int multiValuePos) {
 		
 		if (newValue == null) {
 			setErrorMessage("Failed to parse value as integer. Value is NULL");
