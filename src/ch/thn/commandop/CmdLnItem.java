@@ -411,7 +411,7 @@ public abstract class CmdLnItem {
 	 * @param value
 	 * @param multiValuePos
 	 * @return Returns an info or error message if setting the value failed, or null if
-	 * everything was OK. If it is a info message, it contains the "[INFO] " prefix
+	 * everything was OK.
 	 */
 	private String setValue(String value, int multiValuePos) {
 
@@ -429,12 +429,6 @@ public abstract class CmdLnItem {
 				//Limit the number of values if a value is set for multiValueMax
 				return "Item '" + getName() + "' is limited to " + multiValueMax + " values.";
 			}
-		}
-
-		//Do not parse an item twice (do not set a value twice) if its not
-		//a multi value item
-		if (isParsed && !isMultiValueItem) {
-			return "[INFO] Item '" + getName() + "' occurs more than once. Only first occurrence is used.";
 		}
 
 		//Set the parsed flag already here. Even though the validation might fail
