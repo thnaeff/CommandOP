@@ -461,48 +461,39 @@ public class CommandOP extends CmdLnBase {
 		PreParsedChain currentChain = chainHead;
 		CmdLnBase currentItem = null;
 		CmdLnBase previousItem = null;
-		boolean noOptionParameters = true;		
 		
 		while (currentChain != null) {
-
-			if (currentChain.isOption() || currentChain.isShortOption() || noOptionParameters) {
+			
+			if (currentChain.isOption() || currentChain.isShortOption()) {
 				//If it is an option it means that the "tree" starts from the beginning because an 
-				//option is the first item
-								
-				if (currentItem != null) {
-					//Remember the last item before the current item is retrieved
-					previousItem = currentItem;
-				}
+				//option is the first item.
 				
-				//It's an option or a NoOptionParameter, so take the item from the root
+				//It's an option, so take the item from the root
 				currentItem = children.get(currentChain.getName());
 				
-				if (noOptionParameters) {
-					//Run as noOptionParameters until the first option is found
-					//NoOptionParameters can be at the beginning of the command line 
-					//as parameters without an option as parent
-					noOptionParameters = !(currentChain.isOption() || currentChain.isShortOption());
-				}
+				//An option is the beginning of a "tree". Set as previous item for next loop.
+				previousItem = currentItem;
+			} else if (previousItem == null) {
+				//If it is not an option or short option, but there is no previous item, 
+				//it means it is a non-option-parameter.
+				
+				//It's a no-option-parameter, so take the item from the root
+				currentItem = children.get(currentChain.getName());
+
+				//A non-option-parameter does not have a parent
+				previousItem = null;
 			} else {
-				//Parameter				
-				if (currentItem == null) {
-					if (previousItem == null) {
-						previousItem = children.get(currentChain.getName());
-					}
+				//Parameter of an option
+
+				//Check if previous item has the current chain name as child. If yes, 
+				//use it. If no, travel up the "tree" to see where the parent of the current 
+				//chain name is (if there is one)
+				if (previousItem.hasChild(currentChain.getName())) {
+					currentItem = previousItem.getChild(currentChain.getName());
 					
-					//If no item has been found before, then continue with the previous item
-					currentItem = previousItem;
-				} else {
-					previousItem = currentItem;
-				}
 				
-				
-				//It's not an option, so either it is a child of the current item, 
-				//an item on the same level or a child of an item on a higher level
-				if (currentItem.hasChild(currentChain.getName())) {
-					currentItem = currentItem.getChild(currentChain.getName());
 				} else {
-					currentItem = currentItem.getParentInternal();
+					currentItem = previousItem.getParentInternal();
 					boolean found = false;
 					
 					//Check all children and children of parents
@@ -519,10 +510,16 @@ public class CommandOP extends CmdLnBase {
 					if (!found) {
 						//The item has not been found in the defined items
 						currentItem = null;
+					} else {
+						//Set as previous item for next loop.
+						previousItem = currentItem;	
 					}
 					
 				}
+				
+
 			}
+			
 			
 			
 			//If a defined item has been found, set its data
@@ -533,22 +530,27 @@ public class CommandOP extends CmdLnBase {
 						|| currentChain.isShortOption() != currentItem.isShortOption()
 						|| currentChain.isParameter() != currentItem.isParameter()) {
 					
-					info("Item " + currentItem.getName() + " is defined as " + currentItem.getTypeDescString() + ", but it is given as " + currentChain.getTypeDescString() + " on the command line.");
-				}
-				
-				
-				String errormsg = currentItem.setValue(currentChain.getValue());
-				
-				if (errormsg != null) {
-					//The returned string from setValue might contain the [INFO] prefix
-					if (errormsg.startsWith("[INFO] ")) {
-						info(errormsg.substring("[INFO] ".length()));
-					} else {
-						error(errormsg);
-					}
+					info("Item " + currentItem.getName() + " is defined as " + currentItem.getTypeDescString() + ", but it is given as " + currentChain.getTypeDescString() + " on the command line. Item ignored.");
+					
+					//"Item not found"
+					currentItem = null;
 				} else {
-					currentItem.setCmdLnPos(currentChain.getChainPos());
+					String errormsg = currentItem.setValue(currentChain.getValue());
+					
+					if (errormsg != null) {
+						//The returned string from setValue might contain the [INFO] prefix
+						if (errormsg.startsWith("[INFO] ")) {
+							info(errormsg.substring("[INFO] ".length()));
+						} else {
+							error(errormsg);
+						}
+					} else {
+						currentItem.setCmdLnPos(currentChain.getChainPos());
+					}
 				}
+				
+				
+
 			} else {
 				//Defined item not found. It could be the value of a multi value item.
 								
@@ -556,7 +558,7 @@ public class CommandOP extends CmdLnBase {
 				//is such a multi value item and if the current item is not given as 
 				//name=value pair
 				if (previousItem != null && previousItem.isMultiValueItem() 
-						&& currentChain.getValue() == null && currentChain.getName() != null) {
+						&& currentChain.getValue() == null) {
 					//If the previous item was a multi value item and the current item 
 					//has not been found, it is assumed that the current item is actually 
 					//a value of the multi value item, thus the name is the value
@@ -574,13 +576,11 @@ public class CommandOP extends CmdLnBase {
 					//It is not the value of a multi value item
 					
 					if (previousItem != null) {
-						if (previousItem.isParameter() && previousItem.hasParent()) {
-							error("Unknown argument '" + currentChain.getName() + "' given for option '" + previousItem.getParent().getName() + "'");
-						} else if (previousItem.isOption() || previousItem.isShortOption()) {
-							error("Unknown argument '" + currentChain.getName() + "' given for option '" + previousItem.getName() + "'");
-						} else {
-							error("Unknown argument '" + currentChain.getName() + "' given as no-option-parameter.");
-						}
+						//There was a previous item
+						info("Unknown " + currentChain.getTypeDescString() + " '" + currentChain.getName() + "' given after " + previousItem.getTypeDescString() + " " + previousItem.getName());
+					} else {
+						//There was no previous item
+						info("Unknown " + currentChain.getTypeDescString() + " '" + currentChain.getName() + "' given");
 					}
 					
 					unknownArguments.put(currentChain.getName(), currentChain);

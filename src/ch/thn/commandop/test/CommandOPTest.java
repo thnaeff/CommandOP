@@ -22,8 +22,8 @@ public class CommandOPTest {
 		//  have to appear at the beginning of the command line.
 		
 //		args = "optionless1 optionless2=value -abc --option1 param11 param12=value --option2 param21 param211 param22=value -s - --  stuff ".split(" ");
-//		args = "-ca --atest=aliasvalue --option1 param12=123 --option3 unknownparam=value3 multivalue1 multivalue2 --option2=o2 param21=21 param211=p211 param22=22".split(" ");
-		args = "optionless2 --atest=test --option3 value1 value2 value3 param31=31 param311=311 param32=32 --option2=o2".split(" ");
+		args = "x=test y z -ca --atest=aliasvalue --option1 param12=123 --option3 unknownparam=value3 multivalue1 multivalue2 --option2=o2 param21=21 param211=p211 param22=22".split(" ");
+//		args = "optionless2 --atest=test --option3 value1 value2 value3 param31=31 param311=311 param32=32 --option2=o2".split(" ");
 				
 		
 		CommandOP cmdop = new CommandOP();
@@ -114,6 +114,8 @@ public class CommandOPTest {
 		System.out.println("definedItems: " + printer.getDefinedItems(true, false, false, false));
 		System.out.println(" ");
 		System.out.println(printer.getDefinedItems(false, true, false, false));
+		
+		System.out.println(cmdop.getUnknownArguments());
 		
 		System.out.println("------------");
 		
