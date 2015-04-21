@@ -261,7 +261,7 @@ public abstract class CmdLnItem {
 	 * @return
 	 */
 	protected boolean hasChild(String childName) {
-		return children.containsKey(childName) && children.get(childName).isParsed();
+		return children.containsKey(childName);
 	}
 
 	/**

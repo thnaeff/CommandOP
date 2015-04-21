@@ -473,19 +473,34 @@ public class CommandOP extends CmdLnItem {
 			//If the item has a parent item, only validate it if the parent item is parsed too
 			if (!item.hasParent() || item.hasParent() && item.getParentInternal().isParsed()) {
 				if (item.isMandatory() && !item.isParsed()) {
-					error("Item '" + item.getName() + "' is mandatory");
+					String parent = "";
+					if (item.hasParent()) {
+						parent = " with parent '" + item.getParent().getName() + "'";
+					}
+
+					error("Item '" + item.getName() + "'" + parent + " is mandatory");
 				}
 			}
 
 			//Required value
 			if (item.isValueRequired() && item.isParsed() && item.getValue() == null) {
-				error("Item '" + item.getName() + "' requires a value");
+				String parent = "";
+				if (item.hasParent()) {
+					parent = " with parent '" + item.getParent().getName() + "'";
+				}
+
+				error("Item '" + item.getName() + "'" + parent + " requires a value");
 			}
 
 			//Minimum number of values
 			if (item.isParsed() && item.isMultiValueItem()
 					&& item.getNumOfValues() < item.getMultiValuesRangeMin()) {
-				error("Item '" + item.getName() + "' needs at least " +
+				String parent = "";
+				if (item.hasParent()) {
+					parent = " with parent '" + item.getParent().getName() + "'";
+				}
+
+				error("Item '" + item.getName() + "'" + parent + " needs at least " +
 						item.getMultiValuesRangeMin() + " values.");
 			}
 		}

@@ -16,10 +16,10 @@ public class CommandOpServerClient {
 	 */
 	public static void main(String[] args) {
 
-		//		args = "--server port=12345 --maxConnections=10 --timeout=20".split(" ");
+		args = "--server port=12345 --maxConnections=10 --timeout=20".split(" ");
 		//		args = "--client=my_client host=localhost port=67890 --maxConnections=10".split(" ");
 		//		args = "--client host=localhost port=67890 -ab=value --server port=12345".split(" ");
-		args = "pmulti p1 p2 p3 --omulti o1 o2 o3 -ab --client host=localhost".split(" ");
+		//		args = "pmulti p1 p2 p3 --omulti o1 o2 o3 -ab --client host=localhost".split(" ");
 
 		CommandOP cmdop = new CommandOP();
 
