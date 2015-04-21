@@ -16,21 +16,21 @@
  */
 package ch.thn.commandop;
 
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author Thomas Naeff (github.com/thnaeff)
  *
  */
 public class CommandOPPrinter {
-	
+
 	private static final String ALIGN_LOCATION = "##";
-	
+
 	private CommandOP cmdop = null;
-	
+
 	/**
-	 * Printer-class with some methods to display the {@link CommandOP}-status 
+	 * Printer-class with some methods to display the {@link CommandOP}-status
 	 * and the parsed items
 	 * 
 	 * @param cmdop
@@ -38,8 +38,8 @@ public class CommandOPPrinter {
 	public CommandOPPrinter(CommandOP cmdop) {
 		this.cmdop = cmdop;
 	}
-	
-	
+
+
 	/**
 	 * Returns a formatted list of the pre-parsed items
 	 * 
@@ -48,36 +48,36 @@ public class CommandOPPrinter {
 	 */
 	public String getPreParsed(boolean flat) {
 		StringBuilder preparsed = new StringBuilder();
-		
+
 		PreParsedChain chain = cmdop.getPreParsedChain();
-				
+
 		while (chain != null) {
 			preparsed.append(chain.getName() + CommandOPTools.ITEM_VALUE_SEPARATOR + chain.getValue());
-			
+
 			if (chain.isOption() || chain.isShortOption()) {
 				preparsed.append(" (option)");
 			} else {
 				preparsed.append(" (param)");
 			}
-			
+
 			if (flat) {
 				preparsed.append(" ");
 			} else {
 				preparsed.append("\n");
-				
+
 				for (int i = 0; i <= chain.getChainPos(); i++) {
 					preparsed.append("  ");
 				}
 			}
-			
+
 			chain = chain.getNext();
 		}
-		
+
 		return preparsed.toString();
-		
+
 	}
-	
-	
+
+
 	/**
 	 * Returns some help text for the usage with the defined items
 	 * 
@@ -85,15 +85,15 @@ public class CommandOPPrinter {
 	 */
 	public String getHelpText() {
 		String s = "Command line help:\n";
-		
+
 		s = s + getDefinedItems(false, false, true, true);
-		
+
 		return s;
 	}
-	
-	
+
+
 	/**
-	 * Returns a formatted list showing the defined items with value (if selected) and 
+	 * Returns a formatted list showing the defined items with value (if selected) and
 	 * description
 	 * 
 	 * @param flat
@@ -102,150 +102,144 @@ public class CommandOPPrinter {
 	 * @param hideHidden
 	 * @return
 	 */
-	public String getDefinedItems(boolean flat, boolean withValue, 
+	public String getDefinedItems(boolean flat, boolean withValue,
 			boolean withDescription, boolean hideHidden) {
-		
-		//Do not use cmdop.getChildren() here, because the no-option-parameters 
-		//should appear in front of the rest
-		LinkedHashMap<String, CmdLnItem> all = new LinkedHashMap<String, CmdLnItem>();
-		all.putAll(cmdop.getParameters());
-		all.putAll(cmdop.getOptions());
-		
+
 		LinkedList<StringBuilder> lines = new LinkedList<StringBuilder>();
-		LinkedList<CmdLnItem> flatList = CommandOPTools.createFlatList(all);
-		
+		LinkedList<CmdLnItem> flatList = CommandOPTools.createFlatList(cmdop);
+
 		int longestLine = 0;
-		
-		
+
+
 		for (CmdLnItem item : flatList) {
-			
+
 			if (hideHidden && item.isHiddenInPrint()) {
 				continue;
 			}
-			
+
 			if (item.isAlias()) {
 				continue;
 			}
-			
+
 			StringBuilder line = new StringBuilder();
-			
+
 			if (item.isParameter() && !flat) {
 				if (item.hasParent()) {
 					line.append(" ");
 				}
-				
+
 				//Insets for higher levels
 				for (int i = 0; i < item.getLevel(); i++) {
 					line.append("   ");
 				}
 			}
-			
+
 			//Optional
 			if (!item.isMandatory()) {
 				line.append("[");
 			}
-			
+
 			//Short options (only if no flat output)
-			if (!flat && item.hasAlias()) {				
+			if (!flat && item.hasAlias()) {
 				for (CmdLnItem alias : item.getAlias().values()) {
 					if (!alias.isShortOption()) {
 						continue;
 					}
-					
-					line.append(CommandOPTools.OPTIONSPREFIX_SHORT);	
+
+					line.append(CommandOPTools.OPTIONSPREFIX_SHORT);
 					line.append(alias.getName());
 					line.append(", ");
 				}
 			}
-			
+
 			//Prefix and insets
 			if (item.isOption()) {
 				line.append(CommandOPTools.OPTIONSPREFIX_LONG);
 			} else if (item.isShortOption()) {
 				line.append(CommandOPTools.OPTIONSPREFIX_SHORT);
 			}
-			
-//			//Mandatory
-//			if (item.isMandatory()) {
-//				line.append("*");
-//			}
-			
+
+			//			//Mandatory
+			//			if (item.isMandatory()) {
+			//				line.append("*");
+			//			}
+
 			line.append(item.getName());
-			
+
 			//Optional
 			if (!item.isMandatory()) {
 				line.append("]");
 			}
-			
+
 			//Value
 			if (withValue) {
 				line.append(CommandOPTools.ITEM_VALUE_SEPARATOR);
-				
+
 				//Whether the item is a multi value item or not, all the values
 				//are shown. If its not a multi value item, there is only one value to show
 				for (int i = 0; i < item.getNumOfValues(); i++) {
 					line.append(item.getValue(i));
-					
+
 					if (i < item.getNumOfValues() - 1) {
 						line.append(" ");
 					}
 				}
-				
+
 				if (item.getDefaultValue() != null) {
 					line.append(" (" + item.getDefaultValue() + ")");
 				}
 			}
-			
+
 			//Aliases
 			if (item.hasAlias()) {
 				String commaToAppend = null;
 				StringBuilder sbAliases = new StringBuilder();
-				
+
 				for (CmdLnItem alias : item.getAlias().values()) {
 					if (alias.isShortOption()) {
 						continue;
 					}
-					
+
 					if (commaToAppend != null) {
 						sbAliases.append(commaToAppend);
 						commaToAppend = null;
 					}
-					
+
 					sbAliases.append(alias.getName());
 					commaToAppend = ", ";
 				}
-				
+
 				if (sbAliases.length() > 0) {
 					line.append(" (");
 					line.append(sbAliases);
 					line.append(") ");
 				}
 			}
-			
+
 			//The line length has to be taken before the comment is added
 			if (line.length() > longestLine) {
 				longestLine = line.length();
 			}
-			
+
 			//Description
 			if (!flat && withDescription) {
 				String desc = item.getDescription();
-				
+
 				if (desc != null && desc.length() > 0) {
 					line.append(ALIGN_LOCATION + item.getDescription());
 				}
 			}
-			
+
 			lines.add(line);
-			
+
 		}
-		
-		
+
+
 		StringBuilder output = new StringBuilder();
-		
+
 		//Insets for descriptions
 		for (StringBuilder sb : lines) {
-			
+
 			if (flat) {
 				output.append(sb.toString());
 				output.append(" ");
@@ -257,36 +251,36 @@ public class CommandOPPrinter {
 				output.append(sb.toString());
 				output.append("\n");
 			}
-			
+
 		}
-		
+
 		return output.toString();
 	}
-	
-	
+
+
 	/**
 	 * Returns the plain command line string
 	 * 
 	 * @return
 	 */
 	public String getArgs() {
-		String[] args = cmdop.getArgs();
-		
+		List<String> args = cmdop.getArgs();
+
 		if (args == null) {
 			return "Not yet parsed";
 		}
-		
+
 		StringBuilder s = new StringBuilder();
-		
-		for (int i = 0; i < args.length; i++) {
-			s.append(args[i]);
+
+		for (String arg : args) {
+			s.append(arg);
 			s.append(" ");
 		}
-		
+
 		return s.toString();
-		
+
 	}
-	
-	
+
+
 
 }

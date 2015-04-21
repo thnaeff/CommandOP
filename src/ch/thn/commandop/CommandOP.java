@@ -16,12 +16,12 @@
  */
 package ch.thn.commandop;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -57,15 +57,21 @@ public class CommandOP extends CmdLnItem {
 
 	private PreParsedChain chainHead = null;
 
+	/**
+	 * Only the options
+	 */
 	private LinkedHashMap<String, CmdLnOption> options = null;
-	private LinkedHashMap<String, CmdLnParameter> parameters = null;
+
+	/**
+	 * 
+	 */
 	private LinkedHashMap<String, PreParsedItem> unknownArguments = null;
 
 	private LinkedList<CommandOPGroup> groups = null;
 	private LinkedList<String> errors = null;
 	private LinkedList<String> info = null;
 
-	private String[] args = null;
+	private List<String> args = null;
 
 	private boolean exceptionAtFirstError = false;
 
@@ -78,7 +84,6 @@ public class CommandOP extends CmdLnItem {
 	public CommandOP() {
 
 		options = new LinkedHashMap<String, CmdLnOption>();
-		parameters = new LinkedHashMap<String, CmdLnParameter>();
 		groups = new LinkedList<CommandOPGroup>();
 		unknownArguments = new LinkedHashMap<String, PreParsedItem>();
 		errors = new LinkedList<String>();
@@ -98,18 +103,16 @@ public class CommandOP extends CmdLnItem {
 	public CmdLnOption addOption(String name, String defaultValue, String description) {
 
 		if (options.containsKey(name)) {
-			throw new CommandOPError("The name '" + name + "' is already used as option. Can not add parameter.");
+			throw new CommandOPError("The name '" + name + "' is already used as option. Can not add option.");
 		} else if (alias.containsKey(name)) {
-			throw new CommandOPError("The name '" + name + "' is already used as alias. Can not add parameter.");
-		} else if (parameters.containsKey(name)) {
-			throw new CommandOPError("The name '" + name + "' is already used as parameter.  Can not add parameter.");
+			throw new CommandOPError("The name '" + name + "' is already used as alias. Can not add option.");
+		} else if (children.containsKey(name)) {
+			throw new CommandOPError("The name '" + name + "' is already used as parameter.  Can not add option.");
 		}
 
 		CmdLnOption i = new CmdLnOption(name, defaultValue, description);
-		i.setAsOption();
 		i.setParent(this);
 		options.put(name, i);
-		children.put(name, i);
 		return i;
 	}
 
@@ -140,17 +143,12 @@ public class CommandOP extends CmdLnItem {
 			throw new CommandOPError("The name '" + name + "' is already used as option. Can not add parameter.");
 		} else if (alias.containsKey(name)) {
 			throw new CommandOPError("The name '" + name + "' is already used as alias. Can not add parameter.");
-		} else if (parameters.containsKey(name)) {
+		} else if (children.containsKey(name)) {
 			throw new CommandOPError("The name '" + name + "' is already used as parameter.  Can not add parameter.");
 		}
 
 
-		CmdLnParameter i = new CmdLnParameter(name, defaultValue, description);
-		i.setAsParameter();
-		i.setParent(this);
-		parameters.put(name, i);
-		children.put(name, i);
-		return i;
+		return super.addParameter(name, defaultValue, description);
 	}
 
 	/**
@@ -162,7 +160,7 @@ public class CommandOP extends CmdLnItem {
 	 */
 	@Override
 	public CmdLnParameter addParameter(String name, String description) {
-		return addParameter(name, null, description);
+		return super.addParameter(name, null, description);
 	}
 
 	/**
@@ -186,22 +184,12 @@ public class CommandOP extends CmdLnItem {
 	}
 
 	/**
-	 * Returns all the parameters which have been defined at root-level
-	 * (non-option-parameters).
-	 * 
-	 * @return
-	 */
-	protected HashMap<String, CmdLnParameter> getParameters() {
-		return parameters;
-	}
-
-	/**
-	 * Returns the command-line parameter string which has been
+	 * Returns the command-line parameter string list which has been
 	 * given as parameter when calling parse()
 	 * 
 	 * @return
 	 */
-	protected String[] getArgs() {
+	protected List<String> getArgs() {
 		return args;
 	}
 
@@ -250,50 +238,6 @@ public class CommandOP extends CmdLnItem {
 		CmdLnItem item = options.get(option);
 
 		if (item.isParameter()) {
-			return false;
-		}
-
-		return item.isParsed();
-	}
-
-	/**
-	 * Returns the parameter with the given name. If the given name
-	 * is an alias, the corresponding item is returned.
-	 * 
-	 * @param option
-	 * @return
-	 * @throws CommandOPError
-	 */
-	public CmdLnValue getParameter(String parameter) {
-		if (!parameters.containsKey(parameter)) {
-			throw new CommandOPError("Item " + parameter + " has not been defined as parameter.");
-		}
-
-		CmdLnParameter item = parameters.get(parameter);
-
-		if (!item.isParameter()) {
-			throw new CommandOPError("Item " + parameter + " is not a parameter.");
-		}
-
-		if (item.isAlias()) {
-			return (CmdLnValue) item.getAliasOf();
-		} else {
-			return item;
-		}
-	}
-
-	/**
-	 * Checks if a parameter with the given name exists. A parameter exists
-	 * if the parameter has been defined and if the parameter has been parsed from the command
-	 * line arguments
-	 * 
-	 * @param parameter
-	 * @return
-	 */
-	public boolean hasParameter(String parameter) {
-		CmdLnItem item = parameters.get(parameter);
-
-		if (item == null || !item.isParameter()) {
 			return false;
 		}
 
@@ -350,13 +294,10 @@ public class CommandOP extends CmdLnItem {
 
 		for (CmdLnOption item : options.values()) {
 			item.reset();
-			resetAll(item.getChildren());
+			resetAll(item.getChildrenInternal());
 		}
 
-		for (CmdLnParameter item : parameters.values()) {
-			item.reset();
-			resetAll(item.getChildren());
-		}
+		resetAll(getChildrenInternal());
 
 		super.reset();
 	}
@@ -371,15 +312,17 @@ public class CommandOP extends CmdLnItem {
 			child.reset();
 
 			//Reset children of the current item
-			resetAll(child.getChildren());
+			resetAll(child.getChildrenInternal());
 		}
 	}
 
 	/**
-	 * This method parses the command line arguments.<br />
-	 * When executed repeatedly, new data is added and old data is overwritten.
+	 * This method parses the command line arguments which have to be given in
+	 * the list as "name=value" strings (or just "name" for boolean parameters).
 	 * 
-	 * @param args
+	 * 
+	 * @param item The item under which the command line arguments/properties should be parsed
+	 * @param argsList The command line arguments/properties
 	 * @param overwriteParsed If set to <code>true</code>, items which have already
 	 * been parsed by a previous call to parse() will be overwritten. If set to <code>false</code>,
 	 * items which have already been parsed will not be overwritten.
@@ -387,14 +330,27 @@ public class CommandOP extends CmdLnItem {
 	 * <code>false</code> if there are parsing errors.
 	 * @throws CommandOPError
 	 */
-	public boolean parse(String[] args, boolean overwriteParsed) throws CommandOPError {
-		this.args = args;
+	public boolean parse(CmdLnItem item, List<String> argsList, boolean overwriteParsed) throws CommandOPError {
+		args = argsList;
 		chainHead = null;
 
 		errors.clear();
 		info.clear();
 
-		createPreParsedChain(args);
+		//If an item is given, the path to that item is created by following the
+		//path upwards and creating all parameters and options with values.
+		while (item != null && item != this) {
+			String valuePart = "";
+			if (item.getValue() != null) {
+				valuePart = "=" + item.getValue();
+			}
+
+			//Going upwards adding each part to the front of the list
+			argsList.add(0, item.getCmdLnTypePrefix() + item.getName() + valuePart);
+			item = item.getParent();
+		}
+
+		createPreParsedChain(argsList);
 
 		postParse(overwriteParsed);
 
@@ -404,146 +360,94 @@ public class CommandOP extends CmdLnItem {
 	}
 
 	/**
-	 * This method parses the command line arguments.<br />
-	 * When executed repeatedly, new data is added and old data is overwritten.
+	 * This method parses the command line arguments which have to be given in
+	 * the list as "name=value" strings (or just "name" for boolean parameters).
 	 * 
-	 * @param args
+	 * 
+	 * @param argsList The command line arguments/properties
+	 * @param overwriteParsed If set to <code>true</code>, items which have already
+	 * been parsed by a previous call to parse() will be overwritten. If set to <code>false</code>,
+	 * items which have already been parsed will not be overwritten.
 	 * @return <code>true</code> if parsing went through without any errors, or
 	 * <code>false</code> if there are parsing errors.
 	 * @throws CommandOPError
 	 */
-	public boolean parse(String[] args) throws CommandOPError {
-		return parse(args, true);
+	public boolean parse(List<String> argsList, boolean overwriteParsed) throws CommandOPError {
+		return parse(null, argsList, overwriteParsed);
 	}
 
-
 	/**
-	 * Parses the given properties as children of the given command line item.
+	 * This method parses the command line arguments which have to be given in
+	 * the array as "name=value" strings (or just "name" for boolean parameters).
 	 * 
-	 * @param item The item for which the properties should be parsed as children
-	 * @param properties
+	 * 
+	 * @param argsArray The command line arguments/properties
 	 * @param overwriteParsed If set to <code>true</code>, items which have already
 	 * been parsed by a previous call to parse() will be overwritten. If set to <code>false</code>,
 	 * items which have already been parsed will not be overwritten.
+	 * @return <code>true</code> if parsing went through without any errors, or
+	 * <code>false</code> if there are parsing errors.
 	 * @return
+	 * @throws CommandOPError
 	 */
-	public boolean parse(CmdLnItem item, Properties properties, boolean overwriteParsed) {
-
-		LinkedList<String> path = new LinkedList<String>();
-		CmdLnItem i = item;
-
-		//Create the "tree" path from the root item to the given item
-		//Stop when reaching this (CommandOP)
-		while (i != null && i != this) {
-			//Going upwards
-			path.add(0, i.getCmdLnTypePrefix() + i.getName());
-			i = i.getParent();
-		}
-
-		path.addAll(propertiesToList(properties));
-
-		//Now parse the generated command line
-		return parse(path.toArray(new String[path.size()]), overwriteParsed);
+	public boolean parse(String[] argsArray, boolean overwriteParsed) throws CommandOPError {
+		return parse(null, Arrays.asList(argsArray), true);
 	}
 
 	/**
-	 * Parses the given properties as children of the given command line item.<br />
-	 * When executed repeatedly, new data is added and old data is overwritten.
+	 * This method parses the command line arguments which have to be given in
+	 * the array as "name=value" strings (or just "name" for boolean parameters).
 	 * 
-	 * @param item The item for which the properties should be parsed as children
-	 * @param properties
-	 * @return
-	 */
-	public boolean parse(CmdLnItem item, Properties properties) {
-		return parse(item, properties, true);
-	}
-
-	/**
-	 * Parses the given properties as non-option-parameters
 	 * 
-	 * @param properties
+	 * @param item The item under which the command line arguments/properties should be parsed
+	 * @param argsArray The command line arguments/properties
 	 * @param overwriteParsed If set to <code>true</code>, items which have already
 	 * been parsed by a previous call to parse() will be overwritten. If set to <code>false</code>,
 	 * items which have already been parsed will not be overwritten.
+	 * @return <code>true</code> if parsing went through without any errors, or
+	 * <code>false</code> if there are parsing errors.
 	 * @return
+	 * @throws CommandOPError
 	 */
-	public boolean parse(Properties properties, boolean overwriteParsed) {
-		return parse(this, properties, overwriteParsed);
+	public boolean parse(CmdLnItem item, String[] argsArray, boolean overwriteParsed) throws CommandOPError {
+		return parse(item, Arrays.asList(argsArray), true);
 	}
 
 	/**
-	 * Parses the given properties as non-option-parameters.<br />
-	 * When executed repeatedly, new data is added and old data is overwritten.
+	 * This method parses the command line arguments which have to be given in
+	 * the map as "name"=>"value" pairs (or just "name"=>null for boolean parameters).
 	 * 
-	 * @param properties
-	 * @return
-	 */
-	public boolean parse(Properties properties) {
-		return parse(this, properties, true);
-	}
-
-	/**
-	 * This method allows for a more flexible way of parsing command line parameters
-	 * and properties. The linked list gives the possibility to combine parameters
-	 * from the command line array and from properties etc. and easily allows adding of
-	 * more parameters programmatically.<br />
-	 * <br />
-	 * <br />
-	 * Hint: {@link CommandOP#propertiesToList(Properties)} could be helpful
 	 * 
-	 * @param cmd A linked list of command line arguments
+	 * @param argsMap The command line arguments/properties
 	 * @param overwriteParsed If set to <code>true</code>, items which have already
 	 * been parsed by a previous call to parse() will be overwritten. If set to <code>false</code>,
 	 * items which have already been parsed will not be overwritten.
+	 * @return <code>true</code> if parsing went through without any errors, or
+	 * <code>false</code> if there are parsing errors.
 	 * @return
+	 * @throws CommandOPError
 	 */
-	public boolean parse(LinkedList<String> cmd, boolean overwriteParsed) {
-		return parse(cmd.toArray(new String[cmd.size()]), overwriteParsed);
+	public boolean parse(Map<Object, Object> argsMap, boolean overwriteParsed) throws CommandOPError {
+		return parse(null, CommandOPTools.mapToKeyValueList(argsMap), true);
 	}
 
 	/**
-	 * This method allows for a more flexible way of parsing command line parameters
-	 * and properties. The linked list gives the possibility to combine parameters
-	 * from the command line array and from properties etc. and easily allows adding of
-	 * more parameters programmatically.<br />
-	 * When executed repeatedly, new data is added and old data is overwritten.
-	 * <br />
-	 * <br />
-	 * Hint: {@link CommandOP#propertiesToList(Properties)} could be helpful
+	 * This method parses the command line arguments which have to be given in
+	 * the map as "name"=>"value" pairs (or just "name"=>null for boolean parameters).
 	 * 
-	 * @param cmd
-	 * @return
-	 */
-	public boolean parse(LinkedList<String> cmd) {
-		return parse(cmd.toArray(new String[cmd.size()]), true);
-	}
-
-	/**
-	 * Puts all properties into a list as key=value pairs
 	 * 
-	 * @param properties
+	 * @param item The item under which the command line arguments/properties should be parsed
+	 * @param argsMap The command line arguments/properties
+	 * @param overwriteParsed If set to <code>true</code>, items which have already
+	 * been parsed by a previous call to parse() will be overwritten. If set to <code>false</code>,
+	 * items which have already been parsed will not be overwritten.
+	 * @return <code>true</code> if parsing went through without any errors, or
+	 * <code>false</code> if there are parsing errors.
 	 * @return
+	 * @throws CommandOPError
 	 */
-	public static LinkedList<String> propertiesToList(Properties properties) {
-		LinkedList<String> list = new LinkedList<String>();
-		Set<Entry<Object, Object>> entries = properties.entrySet();
-
-		for (Entry<Object, Object> entry : entries) {
-			String s = entry.getKey().toString();
-
-			//Only add a value if there is one
-			Object value = entry.getValue();
-			if (value != null && value.toString().length() > 0) {
-				s = s + "=" + entry.getValue().toString();
-			}
-
-			//Somehow the properties entry set is always returned in reverse order
-			//(reverse to the order in the properties file). However, since properties
-			//are a set the order might not be guaranteed...
-			list.add(0, s);
-		}
-
-		return list;
+	public boolean parse(CmdLnItem item, Map<Object, Object> argsMap, boolean overwriteParsed) throws CommandOPError {
+		return parse(item, CommandOPTools.mapToKeyValueList(argsMap), true);
 	}
 
 	/**
@@ -553,7 +457,7 @@ public class CommandOP extends CmdLnItem {
 	 */
 	private void validate() throws CommandOPError {
 
-		LinkedList<CmdLnItem> itemsFlat = CommandOPTools.createFlatList(children);
+		LinkedList<CmdLnItem> itemsFlat = CommandOPTools.createFlatList(this);
 
 		for (CmdLnItem item : itemsFlat) {
 			//Mandatory
@@ -664,7 +568,7 @@ public class CommandOP extends CmdLnItem {
 				//option is the first item.
 
 				//It's an option, so take the item from the root
-				currentItem = children.get(currentChain.getName());
+				currentItem = options.get(currentChain.getName());
 
 				//An option is the beginning of a "tree". Set as previous item for next loop.
 				previousItem = currentItem;
@@ -810,12 +714,12 @@ public class CommandOP extends CmdLnItem {
 	 * 
 	 * @param args The command line arguments
 	 */
-	private void createPreParsedChain(String[] args) {
+	private void createPreParsedChain(List<String> args) {
 
 		PreParsedChain lastChain = null;
 
-		for (int i = 0; i < args.length; i++) {
-			String a = args[i];
+		Arrays.asList(args);
+		for (String a : args) {
 
 			if (a == null || a.length() == 0) {
 				continue;
@@ -895,7 +799,6 @@ public class CommandOP extends CmdLnItem {
 	public void exceptionAtFirstError(boolean e) {
 		exceptionAtFirstError = e;
 	}
-
 
 
 }

@@ -25,7 +25,7 @@ import java.util.LinkedList;
  *
  */
 public class CommandOPGroup {
-	
+
 	/** All items have to be given */
 	public static final int MODE_INCLUDE = 0;
 	/** At least one item has to be given */
@@ -34,17 +34,17 @@ public class CommandOPGroup {
 	public static final int MODE_EXCLUDE = 2;
 	/** At least one but no more of the given items can be given */
 	public static final int MODE_EXCLUDE_ONE = 3;
-	
-	
+
+
 	private String name = null;
-	
+
 	private int mode = -1;
-	
+
 	private LinkedHashMap<String, CmdLnItem> items = null;
-	
+
 	private CommandOP cmdop = null;
-	
-	
+
+
 	/**
 	 * Creates a new group with the given name and mode.
 	 * 
@@ -56,11 +56,11 @@ public class CommandOPGroup {
 		this.name = name;
 		this.mode = mode;
 		this.cmdop = cmdop;
-		
+
 		items = new LinkedHashMap<String, CmdLnItem>();
-		
+
 	}
-	
+
 	/**
 	 * Returns the mode of this group
 	 * 
@@ -69,7 +69,7 @@ public class CommandOPGroup {
 	public int getMode() {
 		return mode;
 	}
-	
+
 	/**
 	 * Returns the name of this group
 	 * 
@@ -78,7 +78,7 @@ public class CommandOPGroup {
 	public String getName() {
 		return name;
 	}
-	
+
 	/**
 	 * Adds the given item as group member
 	 * 
@@ -89,16 +89,16 @@ public class CommandOPGroup {
 		if (items.containsKey(item.getName())) {
 			return false;
 		}
-		
+
 		items.put(item.getName(), item);
-		
+
 		return true;
 	}
-	
+
 	/**
-	 * Adds the item with the given name as group member. All the defined 
-	 * items are searched, looking for a matching name. If more than one item 
-	 * have a matching name, adding fails. Thus, only unambiguous items can be 
+	 * Adds the item with the given name as group member. All the defined
+	 * items are searched, looking for a matching name. If more than one item
+	 * have a matching name, adding fails. Thus, only unambiguous items can be
 	 * added with this method.
 	 * 
 	 * @param itemName
@@ -106,9 +106,9 @@ public class CommandOPGroup {
 	 * @throws CommandOPError
 	 */
 	public boolean addMember(String itemName) {
-		
-		LinkedList<CmdLnItem> flatList = CommandOPTools.createFlatList(cmdop.getChildren());
-		
+
+		LinkedList<CmdLnItem> flatList = CommandOPTools.createFlatList(cmdop);
+
 		CmdLnItem itemToAdd = null;
 
 		for (CmdLnItem item : flatList) {
@@ -120,17 +120,17 @@ public class CommandOPGroup {
 				}
 			}
 		}
-		
+
 		if (itemToAdd == null) {
 			throw new CommandOPError("Adding item with name '" + itemName + "' to group " + name + " failed. Item with this name not found.");
 		}
-		
+
 		items.put(itemToAdd.getName(), itemToAdd);
-		
+
 		return true;
-		
+
 	}
-	
+
 	/**
 	 * 
 	 * 
@@ -140,11 +140,11 @@ public class CommandOPGroup {
 		return items;
 	}
 
-	
+
 	@Override
 	public String toString() {
 		return name + ": " + items;
 	}
-	
-	
+
+
 }

@@ -18,11 +18,11 @@ package ch.thn.commandop;
 
 
 /**
- * A command line option does not have a parent item and has a long prefix "--" or a 
- * short prefix "-". Any number of parameters can be added as child items to an option. 
+ * A command line option does not have a parent item and has a long prefix "--" or a
+ * short prefix "-". Any number of parameters can be added as child items to an option.
  * An option can also have a value.
  * 
- * Format follows the GNU format as much as possible: 
+ * Format follows the GNU format as much as possible:
  * http://www.gnu.org/software/guile/manual/html_node/Command-Line-Format.html
  * 
  * @author Thomas Naeff (github.com/thnaeff)
@@ -39,8 +39,9 @@ public class CmdLnOption extends CmdLnParameter {
 	 */
 	public CmdLnOption(String name, String defaultValue, String description) {
 		super(name, defaultValue, description);
+		setAsOption();
 	}
-	
+
 	/**
 	 * 
 	 * @param name
@@ -49,8 +50,9 @@ public class CmdLnOption extends CmdLnParameter {
 	 */
 	public CmdLnOption(String name, String description) {
 		super(name, null, description);
+		setAsOption();
 	}
-	
+
 	/**
 	 * 
 	 * @param name
@@ -58,55 +60,58 @@ public class CmdLnOption extends CmdLnParameter {
 	 */
 	public CmdLnOption(String name) {
 		super(name, null, null);
+		setAsOption();
 	}
-	
+
 	/**
 	 * 
 	 * @see CmdLnItem#CmdLnBase()
 	 */
 	public CmdLnOption() {
 		super(null, null);
+		setAsOption();
 	}
-	
+
 	/**
 	 * A short option is an item with the short prefix {@link CommandOPTools#OPTIONSPREFIX_SHORT}.
-	 * Short options can be added to regular options to give a more convenient way 
+	 * Short options can be added to regular options to give a more convenient way
 	 * for writing the options.<br>
-	 * Short options can also be combined, for example the short options 'a' and 
+	 * Short options can also be combined, for example the short options 'a' and
 	 * 'b' can be written as "-ab".
 	 * 
 	 * @param shortName
 	 * @return
 	 */
-	public CmdLnOption addShortAlias(Character shortName) {		
+	public CmdLnOption addShortAlias(Character shortName) {
 		addAlias(shortName.toString());
 		alias.get(shortName.toString()).setAsShortOption();
 		return this;
 	}
-	
+
 	/**
-	 * Adds an alias to this item. An alias can be used instead of the 
+	 * Adds an alias to this item. An alias can be used instead of the
 	 * item's name.
 	 * 
 	 * @param aliasName
-	 * @return 
+	 * @return
 	 * @throws CommandOPError if an alias with the given name already exists
 	 */
-	public CmdLnParameter addAlias(String aliasName) {
-		
+	@Override
+	public CmdLnOption addAlias(String aliasName) {
+
 		if (alias.containsKey(aliasName)) {
 			throw new CommandOPError("Alias with the name '" + aliasName + "' already exists. Can not add alias.");
 		}
-		
+
+		//Adds an alias option
 		CmdLnParameter item = ((CommandOP)getParentInternal()).addOption(aliasName, null);
-		
 		item.setAliasOf(this);
-		
+
 		alias.put(aliasName, item);
-		
+
 		//Return actual parameter and not the alias
 		return this;
 	}
-	
-	
+
+
 }

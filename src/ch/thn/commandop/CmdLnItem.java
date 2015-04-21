@@ -16,9 +16,12 @@
  */
 package ch.thn.commandop;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.Properties;
 
 import ch.thn.commandop.validator.CommandOPValidator;
 
@@ -43,8 +46,15 @@ public abstract class CmdLnItem {
 
 	protected CommandOPValidator validator = null;
 
-	protected LinkedHashMap<String, CmdLnItem> alias = null;		//The items which are set as alias
-	protected LinkedHashMap<String, CmdLnItem> children = null;
+	/**
+	 * Only the aliases for easier access to them.
+	 */
+	protected LinkedHashMap<String, CmdLnItem> alias = null;
+
+	/**
+	 * All child items. This also includes aliases.
+	 */
+	public LinkedHashMap<String, CmdLnItem> children = null;
 
 	private String description = null;
 	private String name = null;
@@ -175,7 +185,6 @@ public abstract class CmdLnItem {
 
 		for (CmdLnParameter item : items) {
 			children.put(item.getName(), item);
-			item.setAsParameter();
 			item.setParent(this);
 		}
 
@@ -193,7 +202,6 @@ public abstract class CmdLnItem {
 	protected CmdLnParameter addParameter(String name, String defaultValue, String description) {
 		CmdLnParameter child = new CmdLnParameter(name, defaultValue, description);
 		children.put(name, child);
-		child.setAsParameter();
 		child.setParent(this);
 		return child;
 	}
@@ -265,9 +273,9 @@ public abstract class CmdLnItem {
 	}
 
 	/**
-	 * Returns the child with the given name, or null if the child
-	 * item does not exist. If the given name is an alias, the
-	 * corresponding child item is returned.
+	 * Returns the child parameter with the given name, or null if the child
+	 * parameter does not exist. If the given name is an alias, the
+	 * corresponding child parameter is returned.
 	 * 
 	 * @param childName
 	 * @return
@@ -288,13 +296,24 @@ public abstract class CmdLnItem {
 
 	/**
 	 * Returns the list with all the children of this item
-	 * (but it does only return this item's children, and does
-	 * not go deeper)
+	 * (not recursively). The children also include alias items.
 	 * 
 	 * @return
 	 */
-	protected LinkedHashMap<String, CmdLnItem> getChildren() {
+	protected LinkedHashMap<String, CmdLnItem> getChildrenInternal() {
 		return children;
+	}
+
+	/**
+	 * Returns all the child parameters of this item as a unmodifiable map. The child
+	 * items are stored in a {@link LinkedHashMap}, thus also the returned map
+	 * has the same order.
+	 * 
+	 * @param map
+	 * @return
+	 */
+	public Map<String, CmdLnItem> getChildren() {
+		return Collections.unmodifiableMap(children);
 	}
 
 	/**
@@ -420,6 +439,11 @@ public abstract class CmdLnItem {
 			return aliasOf.setValue(value, multiValuePos);
 		}
 
+		//Set the parsed flag already here. Even though the validation might fail
+		//and the value is not set, it is useful to know that the item has been
+		//parsed
+		isParsed = true;
+
 		if (isMultiValueItem) {
 			if (value == null) {
 				//No null-values for multi value items. Otherwise things like
@@ -430,11 +454,6 @@ public abstract class CmdLnItem {
 				return "Item '" + getName() + "' is limited to " + multiValueMax + " values.";
 			}
 		}
-
-		//Set the parsed flag already here. Even though the validation might fail
-		//and the value is not set, it is useful to know that the item has been
-		//parsed
-		isParsed = true;
 
 		if (validator != null) {
 			if (!validator.validate(this, value, multiValuePos)) {
@@ -812,7 +831,7 @@ public abstract class CmdLnItem {
 			return null;
 		}
 
-		LinkedList<CmdLnItem> list = CommandOPTools.createFlatList(parent.getChildren());
+		LinkedList<CmdLnItem> list = CommandOPTools.createFlatList(parent.getChildrenInternal());
 
 		int index = 0;
 
@@ -854,7 +873,7 @@ public abstract class CmdLnItem {
 			return null;
 		}
 
-		LinkedHashMap<String, CmdLnItem> parentChildren = parent.getChildren();
+		LinkedHashMap<String, CmdLnItem> parentChildren = parent.getChildrenInternal();
 
 		LinkedList<CmdLnItem> list = new LinkedList<CmdLnItem>(parentChildren.values());
 
@@ -878,6 +897,36 @@ public abstract class CmdLnItem {
 		return null;
 	}
 
+	/**
+	 * Adds all child parameters of this command line item to the given
+	 * properties. It does not follow children recursively because properties
+	 * are implemented as unordered list and the order of the command line parameters
+	 * might be important.
+	 * 
+	 * @param recursive
+	 * @return
+	 */
+	public Properties toProperties() {
+		Properties properties = new Properties();
+
+		for (CmdLnItem item : children.values()) {
+			if (item.isAlias()) {
+				continue;
+			}
+
+			String value = item.getValue();
+
+			//Value can't be null for properties
+			if (value == null) {
+				value = "";
+			}
+
+			properties.put(item.getName(), value);
+		}
+
+		return properties;
+	}
+
 
 	@Override
 	public String toString() {
@@ -895,7 +944,7 @@ public abstract class CmdLnItem {
 		//				(hasParent() ? ", parent=" + getParent().getName() : "") +
 		//				")";
 
-		return name + "=" + values + "(alias=" + alias + ")";
+		return getCmdLnTypePrefix() + name + "=" + values + "(" + alias + ")";
 	}
 
 }

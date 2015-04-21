@@ -1,6 +1,8 @@
 package ch.thn.commandop.test;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
@@ -25,9 +27,9 @@ public class CommandOPTest {
 		//- Parameters can also be defined without a parent option. Those "optionless" parameters
 		//  have to appear at the beginning of the command line.
 
-		args = "optionless1 optionless2=value -abc --option1 param11 param12=value --option2=a param21=a param211=211 param22=value -s - --  stuff --multivalue cmd1 cmd2".split(" ");
+		//		args = "optionless1 optionless2=value -abc --option1 param11 param12=value --option2=a param21=a param211=211 param22=value -s - --  stuff --multivalue cmd1 cmd2".split(" ");
 		//		args = "x=test y z -ca --atest=aliasvalue --option1 param12=123 --option3 unknownparam=value3 multivalue1 multivalue2 --option2=o2 param21=21 param211=p211 param22=22".split(" ");
-		//		args = "optionless2 --atest=test --option3 value1 value2 value3 param31=31 param311=311 param32=32 --option2=o2".split(" ");
+		args = "optionless2 --atest=test --option3 value1 value2 value3 param31=31 param311=311 param32=32 --option2=o2".split(" ");
 
 
 		CommandOP cmdop = new CommandOP();
@@ -96,7 +98,7 @@ public class CommandOPTest {
 			properties_multivalue.load(new FileInputStream("Properties_multivalue.ini"));
 
 			try {
-				if (!cmdop.parse(cmdop.getChild("multivalue"), properties_multivalue)) {
+				if (!cmdop.parse(cmdop.getOption("multivalue"), properties_multivalue, false)) {
 					printMsgs("--> Parsing errors", cmdop.getErrorMessages(), System.out);
 				}
 			} catch (CommandOPError e) {
@@ -118,7 +120,7 @@ public class CommandOPTest {
 			properties.load(new FileInputStream("Properties.ini"));
 
 			try {
-				if (!cmdop.parse(properties)) {
+				if (!cmdop.parse(properties, false)) {
 					printMsgs("--> Parsing errors", cmdop.getErrorMessages(), System.out);
 				}
 			} catch (CommandOPError e) {
@@ -136,7 +138,7 @@ public class CommandOPTest {
 
 		//Parsing command line arguments
 		try {
-			if (!cmdop.parse(args)) {
+			if (!cmdop.parse(args, false)) {
 				printMsgs("--> Parsing errors", cmdop.getErrorMessages(), System.out);
 			}
 		} catch (CommandOPError e) {
@@ -149,7 +151,7 @@ public class CommandOPTest {
 
 		System.out.println("------------");
 
-		CmdLnValue item0 = cmdop.getParameter("optionless2");
+		CmdLnValue item0 = cmdop.getChild("optionless2");
 		System.out.println(item0.getName() + "=" + item0.getValue());
 
 		CmdLnValue item1 = cmdop.getOption("atest");
@@ -158,8 +160,23 @@ public class CommandOPTest {
 		CmdLnValue item2 = cmdop.getOption("option2").getChild("param21").getChild("param211");
 		System.out.println(item2.getName() + "=" + item2.getValue());
 
+		Properties p = cmdop.toProperties();
+		try {
+			p.store(new FileOutputStream("Properties_out.ini"), "test");
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param cmdop
+	 */
 	public static void printInfo(CommandOP cmdop) {
 		CommandOPPrinter printer = new CommandOPPrinter(cmdop);
 

@@ -1,16 +1,22 @@
 # CommandOP
 **Commandline Option Parser**
 
-With CommandOP you get a small Java library which parses [command line arguments](http://en.wikipedia.org/wiki/Command-line_argument#Arguments). The main advantage of CommandOP is that options and parameters can be structured in a unlimited tree-like construct. This allows for if-then relations (parameters are only allowed if their parent parameter/option is given). Include and exclude groups are also supported. Many other command line parsers only support the traditional flat structures (often just with optional/mandatory options). Options in CommandOP are given as key/value pairs (--option o2=v2 o1=v1...) and CommandOP supports variable argument lists with a defined min/max number of arguments (e.g. --option value1 value2 value3).
+With CommandOP you get a small Java library which parses [command line arguments](http://en.wikipedia.org/wiki/Command-line_argument#Arguments). The library offers a wide range of possibilities, from simple flat command lines to structured parsing and grouping.
+
+The main advantage (compared to other command line parsers) of CommandOP is that options and parameters can be structured in a unlimited tree-like construct. This allows for if-then relations (parameters are only allowed if their parent parameter/option is given). Include and exclude groups are also supported. Many other command line parsers only support the traditional flat structures (often just with optional/mandatory options). Options in CommandOP are given as key/value pairs (--option o2=v2 o1=v1...) and CommandOP supports variable argument lists with a defined min/max number of arguments (e.g. --option value1 value2 value3).
 
 Features:
-* Short (-) and long (--) options (short options can be combined, e.g. -abc instead of -a -b -c)
+* Short and long options (-v/--version, plus short options can be combined, e.g. -abc instead of -a -b -c)
+* Tagged (--filename=Text.txt) and untagged (--version) arguments
 * If-then relations
 * Include and exclude groups
 * Boolean items
 * Mandatory items and items with a mandatory value
 * Value validators
-* Aliases
+* Aliases (--help, -h, ?)
+* Multi value items (--valuelist=a b c d)
+* Textual output printing for command line help
+* Parsing of arrays, lists and maps (helpful for including [Properties](https://docs.oracle.com/javase/tutorial/essential/environment/properties.html))
 
 
 Command line parsing prepares command line arguments in a way that they are easily accessible by program logic. CommandOP parses and validates those arguments using a user defined structure. Following steps are needed for the parsing:

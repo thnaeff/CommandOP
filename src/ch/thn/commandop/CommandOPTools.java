@@ -18,18 +18,22 @@ package ch.thn.commandop;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * @author Thomas Naeff (github.com/thnaeff)
  *
  */
 public class CommandOPTools {
-	
+
 	public final static String ITEM_VALUE_SEPARATOR = "=";
 	public final static String OPTIONSPREFIX_SHORT = "-";
 	public final static String OPTIONSPREFIX_LONG = OPTIONSPREFIX_SHORT + OPTIONSPREFIX_SHORT;
-	
+
 	/**
 	 * 
 	 * 
@@ -39,7 +43,7 @@ public class CommandOPTools {
 	public static String removeOptionPrefix(String optionString) {
 		return optionString.replaceAll("^[" + OPTIONSPREFIX_SHORT + "]{1}", "").replaceAll("^[" + OPTIONSPREFIX_LONG + "]{1}", "");
 	}
-	
+
 	/**
 	 * 
 	 * 
@@ -50,10 +54,10 @@ public class CommandOPTools {
 		if (argsString == null) {
 			return false;
 		}
-		
-		return (argsString.startsWith(OPTIONSPREFIX_LONG));
+
+		return argsString.startsWith(OPTIONSPREFIX_LONG);
 	}
-	
+
 	/**
 	 * 
 	 * 
@@ -64,10 +68,10 @@ public class CommandOPTools {
 		if (argsString == null) {
 			return false;
 		}
-		
-		return (argsString.startsWith(OPTIONSPREFIX_SHORT) && !argsString.startsWith(OPTIONSPREFIX_LONG));
+
+		return argsString.startsWith(OPTIONSPREFIX_SHORT) && !argsString.startsWith(OPTIONSPREFIX_LONG);
 	}
-	
+
 	/**
 	 * 
 	 * 
@@ -81,7 +85,7 @@ public class CommandOPTools {
 			return null;
 		}
 	}
-	
+
 	/**
 	 * 
 	 * 
@@ -95,7 +99,7 @@ public class CommandOPTools {
 			return null;
 		}
 	}
-	
+
 	/**
 	 * 
 	 * 
@@ -105,7 +109,7 @@ public class CommandOPTools {
 	public static boolean isParameter(String argsString) {
 		return !isOption(argsString) && !isShortOption(argsString);
 	}
-	
+
 	/**
 	 * 
 	 * 
@@ -119,7 +123,7 @@ public class CommandOPTools {
 			return null;
 		}
 	}
-	
+
 	/**
 	 * 
 	 * 
@@ -132,8 +136,8 @@ public class CommandOPTools {
 		} else {
 			return null;
 		}
-	}	
-	
+	}
+
 	/**
 	 * 
 	 * 
@@ -148,7 +152,7 @@ public class CommandOPTools {
 			return argsString;
 		}
 	}
-	
+
 	/**
 	 * 
 	 * 
@@ -163,31 +167,51 @@ public class CommandOPTools {
 			return null;
 		}
 	}
-	
+
 	/**
-	 * Takes the map and puts all the existing items in a linked list, recursively 
+	 * Takes the map and puts all the existing items in a linked list, recursively
 	 * following child-items if there are any
 	 * 
 	 * @param items
 	 * @return
 	 */
 	public static LinkedList<CmdLnItem> createFlatList(HashMap<String, CmdLnItem> items) {
-		
+
 		LinkedList<CmdLnItem> itemsFlat = new LinkedList<CmdLnItem>();
-		
+
 		for (CmdLnItem item : items.values()) {
 			itemsFlat.add(item);
-			
+
 			if (item.hasChildren()) {
-				itemsFlat.addAll(createFlatList(item.getChildren()));
+				itemsFlat.addAll(createFlatList(item.getChildrenInternal()));
 			}
 		}
-		
-		
+
+
 		return itemsFlat;
 	}
-	
-	
+
+	/**
+	 * Takes the map and puts all the existing items in a linked list, recursively
+	 * following child-items if there are any
+	 * 
+	 * @param items
+	 * @return
+	 */
+	public static LinkedList<CmdLnItem> createFlatList(CmdLnItem item) {
+		LinkedHashMap<String, CmdLnItem> items = new LinkedHashMap<>();
+
+		if (item instanceof CommandOP) {
+			//Combine options and child parameters. Non-option-parameters first and then the options
+			items.putAll(item.getChildrenInternal());
+			items.putAll(((CommandOP)item).getOptions());
+		} else {
+			items.put(item.getName(), item);
+		}
+
+		return createFlatList(items);
+	}
+
 	/**
 	 * Creates a comma separated list of all the strings in the list.
 	 * 
@@ -196,21 +220,21 @@ public class CommandOPTools {
 	 */
 	public static String createItemsString(LinkedList<String> items) {
 		StringBuffer sb = new StringBuffer();
-		
+
 		Iterator<String> i = items.iterator();
 		while (i.hasNext()) {
 			sb.append(i.next());
-			
+
 			if (i.hasNext()) {
 				sb.append(", ");
 			}
 		}
-		
-		return sb.toString();		
+
+		return sb.toString();
 	}
-	
+
 	/**
-	 * Returns the required number of spaces to align text further to the right 
+	 * Returns the required number of spaces to align text further to the right
 	 * 
 	 * @param spaceFromLeft How many spaces from the left page border are needed?
 	 * @param preStringLength The current length of the string on this line
@@ -218,13 +242,13 @@ public class CommandOPTools {
 	 */
 	protected static String makeRightAlignSpace(int spaceFromLeft, int preStringLength, boolean showDots) {
 		StringBuffer sb = new StringBuffer();
-				
+
 		int spaceNeeded = spaceFromLeft - preStringLength;
-		
+
 		if (spaceNeeded <= 0) {
 			spaceNeeded = 3;
 		}
-		
+
 		for (int i = spaceNeeded; i > 0; i--) {
 			if (showDots) {
 				if (i % 2 == 0) {
@@ -236,8 +260,41 @@ public class CommandOPTools {
 				sb.append(" ");
 			}
 		}
-		
+
 		return sb.toString();
+	}
+
+
+	/**
+	 * Puts all properties into a list as key=value pairs. Takes the string representations
+	 * of key and value.
+	 * 
+	 * @param properties
+	 * @return
+	 */
+	public static LinkedList<String> mapToKeyValueList(Map<Object, Object> map) {
+		LinkedList<String> list = new LinkedList<String>();
+		Set<Entry<Object, Object>> entries = map.entrySet();
+
+		for (Entry<Object, Object> entry : entries) {
+			String s = entry.getKey().toString();
+
+			//Only add a value if there is one
+			Object value = entry.getValue();
+			if (value != null) {
+				String sValue = value.toString();
+				if (sValue.length() > 0) {
+					s = s + "=" + sValue.toString();
+				}
+			}
+
+			//Somehow the properties entry set is always returned in reverse order
+			//(reverse to the order in the properties file). However, since properties
+			//are a set the order might not be guaranteed...
+			list.add(0, s);
+		}
+
+		return list;
 	}
 
 }
