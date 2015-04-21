@@ -16,9 +16,8 @@
  */
 package ch.thn.commandop;
 
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -175,15 +174,15 @@ public class CommandOPTools {
 	 * @param items
 	 * @return
 	 */
-	public static LinkedList<CmdLnItem> createFlatList(HashMap<String, CmdLnItem> items) {
+	public static LinkedList<CmdLnItem> createFlatList(Collection<CmdLnItem> items) {
 
 		LinkedList<CmdLnItem> itemsFlat = new LinkedList<CmdLnItem>();
 
-		for (CmdLnItem item : items.values()) {
+		for (CmdLnItem item : items) {
 			itemsFlat.add(item);
 
 			if (item.hasChildren()) {
-				itemsFlat.addAll(createFlatList(item.getChildrenInternal()));
+				itemsFlat.addAll(createFlatList(item.getChildrenInternal().values()));
 			}
 		}
 
@@ -199,14 +198,14 @@ public class CommandOPTools {
 	 * @return
 	 */
 	public static LinkedList<CmdLnItem> createFlatList(CmdLnItem item) {
-		LinkedHashMap<String, CmdLnItem> items = new LinkedHashMap<>();
+		LinkedList<CmdLnItem> items = new LinkedList<>();
 
 		if (item instanceof CommandOP) {
 			//Combine options and child parameters. Non-option-parameters first and then the options
-			items.putAll(item.getChildrenInternal());
-			items.putAll(((CommandOP)item).getOptions());
+			items.addAll(item.getChildrenInternal().values());
+			items.addAll(((CommandOP)item).getOptions().values());
 		} else {
-			items.put(item.getName(), item);
+			items.add(item);
 		}
 
 		return createFlatList(items);

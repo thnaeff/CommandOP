@@ -29,7 +29,8 @@ public class CommandOPTest {
 
 		//		args = "optionless1 optionless2=value -abc --option1 param11 param12=value --option2=a param21=a param211=211 param22=value -s - --  stuff --multivalue cmd1 cmd2".split(" ");
 		//		args = "x=test y z -ca --atest=aliasvalue --option1 param12=123 --option3 unknownparam=value3 multivalue1 multivalue2 --option2=o2 param21=21 param211=p211 param22=22".split(" ");
-		args = "optionless2 --atest=test --option3 value1 value2 value3 param31=31 param311=311 param32=32 --option2=o2".split(" ");
+		//		args = "optionless2 --atest=test --option3 value1 value2 value3 param31=31 param311=311 param32=32 --option2=o2".split(" ");
+		args = "--help".split(" ");
 
 
 		CommandOP cmdop = new CommandOP();
@@ -39,6 +40,10 @@ public class CommandOPTest {
 		//Just a parameter (without -- or - prefix). This parameter is directly added
 		//to the main CommandOP object which makes it a "optionless" parameter
 		cmdop.addParameter("optionless2", "somevalue", "Just a parameter without option").setMandatory();
+
+		cmdop.addParameter("help", "Shows this command line help").addAlias("?").addAlias("h").setAsBoolean();
+
+		cmdop.addOption("help", "Shows this command line help").addShortAlias('h').setAsBoolean();
 
 		cmdop.addParameter("property4", "A parameter from the properties file").setMandatory();
 		cmdop.addParameter("property3", "Another parameter from the properties file").setMandatory().setAsBoolean();
@@ -151,7 +156,7 @@ public class CommandOPTest {
 
 		System.out.println("------------");
 
-		CmdLnValue item0 = cmdop.getChild("optionless2");
+		CmdLnValue item0 = cmdop.getParameter("optionless2");
 		System.out.println(item0.getName() + "=" + item0.getValue());
 
 		CmdLnValue item1 = cmdop.getOption("atest");

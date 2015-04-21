@@ -101,15 +101,6 @@ public class CommandOP extends CmdLnItem {
 	 * @return
 	 */
 	public CmdLnOption addOption(String name, String defaultValue, String description) {
-
-		if (options.containsKey(name)) {
-			throw new CommandOPError("The name '" + name + "' is already used as option. Can not add option.");
-		} else if (alias.containsKey(name)) {
-			throw new CommandOPError("The name '" + name + "' is already used as alias. Can not add option.");
-		} else if (children.containsKey(name)) {
-			throw new CommandOPError("The name '" + name + "' is already used as parameter.  Can not add option.");
-		}
-
 		CmdLnOption i = new CmdLnOption(name, defaultValue, description);
 		i.setParent(this);
 		options.put(name, i);
@@ -138,16 +129,6 @@ public class CommandOP extends CmdLnItem {
 	 */
 	@Override
 	public CmdLnParameter addParameter(String name, String defaultValue, String description) {
-
-		if (options.containsKey(name)) {
-			throw new CommandOPError("The name '" + name + "' is already used as option. Can not add parameter.");
-		} else if (alias.containsKey(name)) {
-			throw new CommandOPError("The name '" + name + "' is already used as alias. Can not add parameter.");
-		} else if (children.containsKey(name)) {
-			throw new CommandOPError("The name '" + name + "' is already used as parameter.  Can not add parameter.");
-		}
-
-
 		return super.addParameter(name, defaultValue, description);
 	}
 
@@ -161,6 +142,18 @@ public class CommandOP extends CmdLnItem {
 	@Override
 	public CmdLnParameter addParameter(String name, String description) {
 		return super.addParameter(name, null, description);
+	}
+
+	/**
+	 * Returns the parameter with the given name, or null if the parameter
+	 * does not exist. If the given name is an alias, the corresponding
+	 * parameter is returned.
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public CmdLnValue getParameter(String name) {
+		return super.getChild(name);
 	}
 
 	/**
@@ -237,7 +230,23 @@ public class CommandOP extends CmdLnItem {
 	public boolean hasOption(String option) {
 		CmdLnItem item = options.get(option);
 
-		if (item.isParameter()) {
+		if (item == null || item.isParameter()) {
+			return false;
+		}
+
+		return item.isParsed();
+	}
+
+	/**
+	 * Returns true if the parameter has been defined and parsed
+	 * 
+	 * @param parameter
+	 * @return
+	 */
+	public boolean hasParameter(String parameter) {
+		CmdLnItem item = children.get(parameter);
+
+		if (item == null || item.isOption()) {
 			return false;
 		}
 

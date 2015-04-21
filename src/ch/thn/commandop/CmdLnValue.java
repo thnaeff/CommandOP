@@ -16,6 +16,8 @@
  */
 package ch.thn.commandop;
 
+import java.util.Map;
+
 /**
  * Just another name for a {@link CmdLnParameter} or a {@link CmdLnOption} to
  * have a common type when retrieving values. Also, this type exposes many methods
@@ -70,6 +72,10 @@ public class CmdLnValue extends CmdLnItem {
 		return super.getChild(childName);
 	}
 
+	@Override
+	public Map<String, CmdLnItem> getChildren() {
+		return super.getChildren();
+	}
 
 	@Override
 	public String getValue() {

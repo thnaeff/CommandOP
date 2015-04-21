@@ -109,7 +109,7 @@ public class CommandOpServerClient {
 		CmdLnValue item6 = cmdop.getOption("omulti");
 		System.out.println(item6.getName() + "=" + item6.getValue());
 
-		CmdLnValue item7 = cmdop.getChild("pmulti");
+		CmdLnValue item7 = cmdop.getParameter("pmulti");
 		System.out.println(item7.getName() + "=" + item7.getValue());
 
 	}

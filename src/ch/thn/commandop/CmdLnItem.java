@@ -254,13 +254,14 @@ public abstract class CmdLnItem {
 	}
 
 	/**
-	 * Returns true if this item has the specified child item
+	 * Returns true if this item has the specified child item and if the item
+	 * has been parsed.
 	 * 
 	 * @param childName
 	 * @return
 	 */
 	protected boolean hasChild(String childName) {
-		return children.containsKey(childName);
+		return children.containsKey(childName) && children.get(childName).isParsed();
 	}
 
 	/**
@@ -280,7 +281,7 @@ public abstract class CmdLnItem {
 	 * @param childName
 	 * @return
 	 */
-	public CmdLnValue getChild(String childName) {
+	protected CmdLnValue getChild(String childName) {
 		if (!children.containsKey(childName)) {
 			throw new CommandOPError("Child parameter '" + childName + "' is not defined in '" + getName() + "'.");
 		}
@@ -312,7 +313,7 @@ public abstract class CmdLnItem {
 	 * @param map
 	 * @return
 	 */
-	public Map<String, CmdLnItem> getChildren() {
+	protected Map<String, CmdLnItem> getChildren() {
 		return Collections.unmodifiableMap(children);
 	}
 
@@ -831,7 +832,7 @@ public abstract class CmdLnItem {
 			return null;
 		}
 
-		LinkedList<CmdLnItem> list = CommandOPTools.createFlatList(parent.getChildrenInternal());
+		LinkedList<CmdLnItem> list = CommandOPTools.createFlatList(parent.getChildrenInternal().values());
 
 		int index = 0;
 
