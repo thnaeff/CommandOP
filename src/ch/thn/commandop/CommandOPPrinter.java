@@ -106,7 +106,7 @@ public class CommandOPPrinter {
 			boolean withDescription, boolean hideHidden) {
 
 		LinkedList<StringBuilder> lines = new LinkedList<StringBuilder>();
-		LinkedList<CmdLnItem> flatList = CommandOPTools.createFlatList(cmdop);
+		LinkedList<CmdLnValue> flatList = CommandOPTools.createFlatList(cmdop);
 
 		int longestLine = 0;
 

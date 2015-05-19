@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import ch.thn.commandop.validator.CommandOPValidator;
@@ -53,7 +54,7 @@ public abstract class CmdLnItem {
 	/**
 	 * All child items. This also includes aliases.
 	 */
-	public LinkedHashMap<String, CmdLnItem> children = null;
+	public LinkedHashMap<String, CmdLnValue> children = null;
 
 	private String description = null;
 	private String name = null;
@@ -88,9 +89,9 @@ public abstract class CmdLnItem {
 		this.defaultValue = defaultValue;
 		this.description = description;
 
-		values = new LinkedList<String>();
-		children = new LinkedHashMap<String, CmdLnItem>();
-		alias = new LinkedHashMap<String, CmdLnItem>();
+		values = new LinkedList<>();
+		children = new LinkedHashMap<>();
+		alias = new LinkedHashMap<>();
 
 	}
 
@@ -300,7 +301,7 @@ public abstract class CmdLnItem {
 	 * 
 	 * @return
 	 */
-	protected LinkedHashMap<String, CmdLnItem> getChildrenInternal() {
+	protected LinkedHashMap<String, CmdLnValue> getChildrenInternal() {
 		return children;
 	}
 
@@ -312,7 +313,7 @@ public abstract class CmdLnItem {
 	 * @param map
 	 * @return
 	 */
-	protected Map<String, CmdLnItem> getChildren() {
+	protected Map<String, CmdLnValue> getChildren() {
 		return Collections.unmodifiableMap(children);
 	}
 
@@ -362,6 +363,22 @@ public abstract class CmdLnItem {
 				return defaultValue;
 			}
 		}
+	}
+
+	/**
+	 * Returns all the values of this command line item. If the item is a multi
+	 * value item, it might contain multiple values. If it is not a multi value
+	 * item, the returned list only contains one single value.
+	 * 
+	 * @return
+	 */
+	public List<String> getMultiValues() {
+		if (aliasOf != null) {
+			//This item is only the alias of another item
+			return aliasOf.getMultiValues();
+		}
+
+		return Collections.unmodifiableList(values);
 	}
 
 	/**
@@ -831,7 +848,7 @@ public abstract class CmdLnItem {
 			return null;
 		}
 
-		LinkedList<CmdLnItem> list = CommandOPTools.createFlatList(parent.getChildrenInternal().values());
+		LinkedList<CmdLnValue> list = CommandOPTools.createFlatList(parent.getChildrenInternal().values());
 
 		int index = 0;
 
@@ -873,7 +890,7 @@ public abstract class CmdLnItem {
 			return null;
 		}
 
-		LinkedHashMap<String, CmdLnItem> parentChildren = parent.getChildrenInternal();
+		LinkedHashMap<String, CmdLnValue> parentChildren = parent.getChildrenInternal();
 
 		LinkedList<CmdLnItem> list = new LinkedList<CmdLnItem>(parentChildren.values());
 
@@ -898,37 +915,56 @@ public abstract class CmdLnItem {
 	}
 
 	/**
-	 * Creates a map of all the children of this command line item
+	 * Creates a map of all the children of this command line item. The key is the
+	 * parameter/option name, the value is the command line object.
 	 * 
+	 * 
+	 * put into the map. If set to <code>false</code>, alias items are omitted.
 	 * @return
 	 */
-	public Map<String, String> toMap() {
-		return toMap(false);
+	public Map<String, CmdLnValue> toMap() {
+		return toMap(this, new HashMap<String, CmdLnValue>(), false, false);
 	}
 
 	/**
-	 * Creates a map of all the children of this command line item
+	 * Creates a map of all the children of this command line item. The key is the
+	 * parameter/option name, the value is the command line object.
 	 * 
+	 * 
+	 * @param recursive If set to <code>true</code>, it recursively follows children
 	 * @param withAlias If set to <code>true</code>, also alias key-value pairs are
 	 * put into the map. If set to <code>false</code>, alias items are omitted.
 	 * @return
 	 */
-	public Map<String, String> toMap(boolean withAlias) {
-		Map<String, String> m = new LinkedHashMap<>();
+	public Map<String, CmdLnValue> toMap(boolean recursive, boolean withAlias) {
+		return toMap(this, new HashMap<String, CmdLnValue>(), recursive, withAlias);
+	}
 
-		for (CmdLnItem item : children.values()) {
-			if (!withAlias && item.isAlias()) {
+	/**
+	 * Creates a map of all the children of the given command line item. The key is the
+	 * parameter/option name, the value is the command line object.
+	 * 
+	 * 
+	 * @param item The item to take the children from
+	 * @param m The map to put the children into
+	 * @param recursive If set to <code>true</code>, it recursively follows children
+	 * @param withAlias If set to <code>true</code>, also alias key-value pairs are
+	 * put into the map. If set to <code>false</code>, alias items are omitted.
+	 * @return The same map which is given by the parameter <code>m</code>.
+	 */
+	protected Map<String, CmdLnValue> toMap(CmdLnItem item, Map<String, CmdLnValue> m,
+			boolean recursive, boolean withAlias) {
+
+		for (CmdLnValue value : item.getChildrenInternal().values()) {
+			if (!withAlias && value.isAlias()) {
 				continue;
 			}
 
-			String value = item.getValue();
-
-			//Value can't be null for properties
-			if (value == null) {
-				value = "";
-			}
-
 			m.put(item.getName(), value);
+
+			if (recursive) {
+				value.toMap(value, m, recursive, withAlias);
+			}
 		}
 
 		return m;

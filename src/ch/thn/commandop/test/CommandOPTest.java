@@ -164,7 +164,7 @@ public class CommandOPTest {
 		CmdLnValue item2 = cmdop.getOption("option2").getChild("param21").getChild("param211");
 		System.out.println(item2.getName() + "=" + item2.getValue());
 
-		Map<String, String> p = cmdop.toMap();
+		Map<String, CmdLnValue> p = cmdop.toMap();
 		//		try {
 		//			p.store(new FileOutputStream("Properties_out.ini"), "test");
 		//		} catch (FileNotFoundException e) {

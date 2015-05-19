@@ -73,7 +73,7 @@ public class CmdLnValue extends CmdLnItem {
 	}
 
 	@Override
-	public Map<String, CmdLnItem> getChildren() {
+	public Map<String, CmdLnValue> getChildren() {
 		return super.getChildren();
 	}
 

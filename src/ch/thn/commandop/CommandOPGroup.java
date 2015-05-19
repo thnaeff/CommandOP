@@ -107,7 +107,7 @@ public class CommandOPGroup {
 	 */
 	public boolean addMember(String itemName) {
 
-		LinkedList<CmdLnItem> flatList = CommandOPTools.createFlatList(cmdop);
+		LinkedList<CmdLnValue> flatList = CommandOPTools.createFlatList(cmdop);
 
 		CmdLnItem itemToAdd = null;
 

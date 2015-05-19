@@ -174,11 +174,11 @@ public class CommandOPTools {
 	 * @param items
 	 * @return
 	 */
-	public static LinkedList<CmdLnItem> createFlatList(Collection<CmdLnItem> items) {
+	public static LinkedList<CmdLnValue> createFlatList(Collection<CmdLnValue> items) {
 
-		LinkedList<CmdLnItem> itemsFlat = new LinkedList<CmdLnItem>();
+		LinkedList<CmdLnValue> itemsFlat = new LinkedList<>();
 
-		for (CmdLnItem item : items) {
+		for (CmdLnValue item : items) {
 			itemsFlat.add(item);
 
 			if (item.hasChildren()) {
@@ -191,21 +191,21 @@ public class CommandOPTools {
 	}
 
 	/**
-	 * Takes the map and puts all the existing items in a linked list, recursively
+	 * Puts all the existing child items in a linked list, recursively
 	 * following child-items if there are any
 	 * 
 	 * @param items
 	 * @return
 	 */
-	public static LinkedList<CmdLnItem> createFlatList(CmdLnItem item) {
-		LinkedList<CmdLnItem> items = new LinkedList<>();
+	public static LinkedList<CmdLnValue> createFlatList(CmdLnItem item) {
+		LinkedList<CmdLnValue> items = new LinkedList<>();
 
 		if (item instanceof CommandOP) {
 			//Combine options and child parameters. Non-option-parameters first and then the options
 			items.addAll(item.getChildrenInternal().values());
 			items.addAll(((CommandOP)item).getOptions().values());
 		} else {
-			items.add(item);
+			items.add((CmdLnValue)item);
 		}
 
 		return createFlatList(items);

@@ -316,7 +316,7 @@ public class CommandOP extends CmdLnItem {
 	 * 
 	 * @param children
 	 */
-	private void resetAll(HashMap<String, CmdLnItem> children) {
+	private void resetAll(HashMap<String, CmdLnValue> children) {
 		for (CmdLnItem child : children.values()) {
 			child.reset();
 
@@ -466,7 +466,7 @@ public class CommandOP extends CmdLnItem {
 	 */
 	private void validate() throws CommandOPError {
 
-		LinkedList<CmdLnItem> itemsFlat = CommandOPTools.createFlatList(this);
+		LinkedList<CmdLnValue> itemsFlat = CommandOPTools.createFlatList(this);
 
 		for (CmdLnItem item : itemsFlat) {
 			//Mandatory
