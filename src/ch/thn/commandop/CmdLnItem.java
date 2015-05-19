@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Properties;
 
 import ch.thn.commandop.validator.CommandOPValidator;
 
@@ -899,19 +898,26 @@ public abstract class CmdLnItem {
 	}
 
 	/**
-	 * Adds all child parameters of this command line item to the given
-	 * properties. It does not follow children recursively because properties
-	 * are implemented as unordered list and the order of the command line parameters
-	 * might be important.
+	 * Creates a map of all the children of this command line item
 	 * 
-	 * @param recursive
 	 * @return
 	 */
-	public Properties toProperties() {
-		Properties properties = new Properties();
+	public Map<String, String> toMap() {
+		return toMap(false);
+	}
+
+	/**
+	 * Creates a map of all the children of this command line item
+	 * 
+	 * @param withAlias If set to <code>true</code>, also alias key-value pairs are
+	 * put into the map. If set to <code>false</code>, alias items are omitted.
+	 * @return
+	 */
+	public Map<String, String> toMap(boolean withAlias) {
+		Map<String, String> m = new LinkedHashMap<>();
 
 		for (CmdLnItem item : children.values()) {
-			if (item.isAlias()) {
+			if (!withAlias && item.isAlias()) {
 				continue;
 			}
 
@@ -922,10 +928,10 @@ public abstract class CmdLnItem {
 				value = "";
 			}
 
-			properties.put(item.getName(), value);
+			m.put(item.getName(), value);
 		}
 
-		return properties;
+		return m;
 	}
 
 

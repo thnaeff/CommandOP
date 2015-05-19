@@ -1,11 +1,10 @@
 package ch.thn.commandop.test;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import ch.thn.commandop.CmdLnValue;
@@ -165,14 +164,14 @@ public class CommandOPTest {
 		CmdLnValue item2 = cmdop.getOption("option2").getChild("param21").getChild("param211");
 		System.out.println(item2.getName() + "=" + item2.getValue());
 
-		Properties p = cmdop.toProperties();
-		try {
-			p.store(new FileOutputStream("Properties_out.ini"), "test");
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		Map<String, String> p = cmdop.toMap();
+		//		try {
+		//			p.store(new FileOutputStream("Properties_out.ini"), "test");
+		//		} catch (FileNotFoundException e) {
+		//			e.printStackTrace();
+		//		} catch (IOException e) {
+		//			e.printStackTrace();
+		//		}
 
 
 	}
