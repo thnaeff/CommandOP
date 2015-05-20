@@ -282,9 +282,7 @@ public class CommandOPTools {
 			Object value = entry.getValue();
 			if (value != null) {
 				String sValue = value.toString();
-				if (sValue.length() > 0) {
-					s = s + "=" + sValue.toString();
-				}
+				s = s + "=" + sValue.toString();
 			}
 
 			//Somehow the properties entry set is always returned in reverse order
