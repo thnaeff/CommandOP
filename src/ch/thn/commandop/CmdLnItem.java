@@ -501,13 +501,15 @@ public abstract class CmdLnItem {
 
 		if (value == null) {
 			if (isBoolean) {
+				//The parameter exists (just without value) -> true
 				addValue("true");
 			} else {
 				addValue(null);
 			}
 		} else {
 			if (isBoolean) {
-				if (value.toLowerCase().equals("true")) {
+				String lower = value.toLowerCase();
+				if (lower.equals("true") || lower.equals("1")) {
 					addValue("true");
 				} else {
 					addValue("false");

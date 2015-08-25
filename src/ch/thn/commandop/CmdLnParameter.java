@@ -131,9 +131,13 @@ public class CmdLnParameter extends CmdLnValue {
 
 
 	/**
-	 * Sets the status of the boolean-flag.<br>
-	 * A boolean item behaves in a special way when
-	 * setting or getting its value.
+	 * Defines this command line item as a boolean item. A boolean "true" is used
+	 * as value when:<br />
+	 * - The value is given as "true" (case insensitive)<br />
+	 * - The value is given as "1"<br />
+	 * - The value is omitted<br />
+	 * Any other value (or if the command line item is not present in the parsed
+	 * arguments) results in a "false" value.
 	 *
 	 * @return
 	 */
