@@ -1,11 +1,8 @@
 package ch.thn.commandop.test;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import ch.thn.commandop.CmdLnValue;
 import ch.thn.commandop.CommandOP;
@@ -26,10 +23,11 @@ public class CommandOPTest {
 		//- Parameters can also be defined without a parent option. Those "optionless" parameters
 		//  have to appear at the beginning of the command line.
 
-		//		args = "optionless1 optionless2=value -abc --option1 param11 param12=value --option2=a param21=a param211=211 param22=value -s - --  stuff --multivalue cmd1 cmd2".split(" ");
+		args = "optionless1 optionless2=value optionless2=test -abc --option1 param11 param12=value --multivalue cmd0 --option2=a param21=a param211=211 param22=value -s - --  stuff --multivalue=cmd1 cmd2".split(" ");
 		//		args = "x=test y z -ca --atest=aliasvalue --option1 param12=123 --option3 unknownparam=value3 multivalue1 multivalue2 --option2=o2 param21=21 param211=p211 param22=22".split(" ");
-		args = "optionless2 --atest=test --option3 value1 value2 value3 param31=31 param311=311 param32=32 --option2=o2".split(" ");
+		//		args = "optionless2 --atest=test --option3 value1 value2 value3 param31=31 param311=311 param32=32 --option2=o2".split(" ");
 		//		args = "--help".split(" ");
+		String[] args2 = "optionless2=another_value --multivalue cmd_21 cmd_22".split(" ");
 
 
 		CommandOP cmdop = new CommandOP();
@@ -38,7 +36,7 @@ public class CommandOPTest {
 
 		//Just a parameter (without -- or - prefix). This parameter is directly added
 		//to the main CommandOP object which makes it a "optionless" parameter
-		cmdop.addParameter("optionless2", "somevalue", "Just a parameter without option").setMandatory();
+		cmdop.addParameter("optionless2", "somevalue", "Just a parameter without option").setMandatory().useFirstOccurrence(true);
 
 		cmdop.addParameter("help", "Shows this command line help").addAlias("?").addAlias("h").setAsBoolean();
 
@@ -96,6 +94,7 @@ public class CommandOPTest {
 
 		cmdop.exceptionAtFirstError(false);
 
+		/*
 		//Parsing properties
 		Properties properties_multivalue = new Properties();
 		try {
@@ -118,6 +117,7 @@ public class CommandOPTest {
 
 		System.out.println("===========================================================");
 
+
 		//Parsing properties
 		Properties properties = new Properties();
 		try {
@@ -139,11 +139,21 @@ public class CommandOPTest {
 		printInfo(cmdop);
 
 		System.out.println("===========================================================");
+		 */
 
 		//Parsing command line arguments
 		try {
 			if (!cmdop.parse(args, false)) {
-				printMsgs("--> Parsing errors", cmdop.getErrorMessages(), System.out);
+				printMsgs("--> Parsing errors when parsing args", cmdop.getErrorMessages(), System.out);
+			}
+		} catch (CommandOPError e) {
+			e.printStackTrace();
+		}
+
+		//Parsing a second set of command line arguments
+		try {
+			if (!cmdop.parse(args2, true)) {
+				printMsgs("--> Parsing errors when parsing args2", cmdop.getErrorMessages(), System.out);
 			}
 		} catch (CommandOPError e) {
 			e.printStackTrace();

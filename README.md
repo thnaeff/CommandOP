@@ -18,6 +18,9 @@ Features:
 * Multi value items (--valuelist=a b c d, or --valuelist=a --valuelist=b...)
 * Textual output printing for formatted command line help
 * Parsing parameters from arrays, lists and maps (helpful for including [Properties](https://docs.oracle.com/javase/tutorial/essential/environment/properties.html))
+* Choose between using the first or the last occurrence of a command line item
+* Repeated parsing of command line options possible. Parsed options can be consolidated or overwritten
+
 
 
 Command line parsing prepares command line arguments in a way that they are easily accessible by program logic. CommandOP parses and validates those arguments using a user defined structure. Following steps are needed for the parsing:

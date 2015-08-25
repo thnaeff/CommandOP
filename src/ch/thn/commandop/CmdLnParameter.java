@@ -214,7 +214,7 @@ public class CmdLnParameter extends CmdLnValue {
 	 * string which is shown in the command line help output to describe the
 	 * type of the value.
 	 *
-	 * @param typeString
+	 * @param typeString A string describing the type of the value
 	 * @return
 	 */
 	public CmdLnParameter setTypeString(String typeString) {
@@ -222,5 +222,17 @@ public class CmdLnParameter extends CmdLnValue {
 		return this;
 	}
 
+	/**
+	 * By default, the last occurrence of a command line option/parameter is used
+	 * if the option/parameter occurs more than once. When setting this flag to <code>true</code>
+	 * the very first occurrence is used and further occurrences are ignored.
+	 *
+	 * @param useFirstOccurrence
+	 * @return
+	 */
+	public CmdLnParameter useFirstOccurrence(boolean useFirstOccurrence) {
+		this.useFirstOccurrence = useFirstOccurrence;
+		return this;
+	}
 
 }

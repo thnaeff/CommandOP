@@ -72,6 +72,7 @@ public abstract class CmdLnItem {
 	protected boolean isValueRequired = false;
 	private boolean isHiddenInPrint = false;
 	protected boolean isMultiValueItem = false;
+	protected boolean useFirstOccurrence = false;
 
 	private int level = 0;
 	protected int multiValueMin = 0;
@@ -479,6 +480,16 @@ public abstract class CmdLnItem {
 			} else if (multiValueMax != 0 && values.size() >= multiValueMax) {
 				//Limit the number of values if a value is set for multiValueMax
 				return "Item '" + getName() + "' is limited to " + multiValueMax + " values.";
+			}
+		} else {
+			if (values.size() > 0) {
+				if (useFirstOccurrence) {
+					//Only the first occurrence is used, further occurrences are ignored
+					return "[INFO] Value already set for '" + getName() + "' (" + getValue() + "). Only first occurrence is used.";
+				} else {
+					//Only last occurrence is used. Clear any existing values.
+					values.clear();
+				}
 			}
 		}
 

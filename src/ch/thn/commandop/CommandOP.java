@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 package ch.thn.commandop;
 
@@ -39,16 +39,23 @@ import java.util.Map;
  * <br />
  * <br />
  * Features:<br />
- * - Short (-) and long (--) options (short options can be combined, e.g. -abc instead of -a -b -c)<br />
+ * - Short and long options (-v/--version, plus short options can be combined, e.g. -abc instead of -a -b -c)<br />
+ * - Tagged (--filename=Text.txt) and untagged (--version) arguments<br />
  * - If-then relations<br />
  * - Include and exclude groups<br />
  * - Boolean items<br />
  * - Mandatory items and items with a mandatory value<br />
+ * - Default values<br />
  * - Value validators<br />
- * - Aliases<br />
- * 
- * 
- * 
+ * - Aliases (--help, -h, ?)<br />
+ * - Multi value items (--valuelist=a b c d)<br />
+ * - Textual output printing for command line help<br />
+ * - Parsing of arrays, lists and maps (helpful for including Properties)<br />
+ * - Choose between using the first or the last occurrence of a command line item<br />
+ * - Repeated parsing of command line options possible. Parsed options can be consolidated or overwritten<br />
+ *
+ *
+ *
  * @author Thomas Naeff (github.com/thnaeff)
  *
  */
@@ -63,7 +70,7 @@ public class CommandOP extends CmdLnItem {
 	private LinkedHashMap<String, CmdLnOption> options = null;
 
 	/**
-	 * 
+	 *
 	 */
 	private LinkedHashMap<String, PreParsedItem> unknownArguments = null;
 
@@ -79,7 +86,7 @@ public class CommandOP extends CmdLnItem {
 	/**
 	 * CommandlineOptionParser<br>
 	 * <br>
-	 * 
+	 *
 	 */
 	public CommandOP() {
 
@@ -94,7 +101,7 @@ public class CommandOP extends CmdLnItem {
 	/**
 	 * Adds a new option with the given parameters. This option will
 	 * be the root-item for further items
-	 * 
+	 *
 	 * @param name
 	 * @param defaultValue
 	 * @param description
@@ -110,7 +117,7 @@ public class CommandOP extends CmdLnItem {
 	/**
 	 * Adds a new option with the given parameters. This option will
 	 * be the root-item for further items
-	 * 
+	 *
 	 * @param name
 	 * @param description
 	 * @return
@@ -121,7 +128,7 @@ public class CommandOP extends CmdLnItem {
 
 	/**
 	 * Adds a new parameter with the given values (as root-item).
-	 * 
+	 *
 	 * @param name
 	 * @param defaultValue
 	 * @param description
@@ -134,7 +141,7 @@ public class CommandOP extends CmdLnItem {
 
 	/**
 	 * Adds a new parameter with the given values (as root-item).
-	 * 
+	 *
 	 * @param name
 	 * @param description
 	 * @return
@@ -148,7 +155,7 @@ public class CommandOP extends CmdLnItem {
 	 * Returns the parameter with the given name, or null if the parameter
 	 * does not exist. If the given name is an alias, the corresponding
 	 * parameter is returned.
-	 * 
+	 *
 	 * @param name
 	 * @return
 	 */
@@ -160,7 +167,7 @@ public class CommandOP extends CmdLnItem {
 	 * Returns the first object of the pre-parsed chain.
 	 * As long as parse() has not been called, this
 	 * method will return null.
-	 * 
+	 *
 	 * @return
 	 */
 	protected PreParsedChain getPreParsedChain() {
@@ -169,7 +176,7 @@ public class CommandOP extends CmdLnItem {
 
 	/**
 	 * Returns all the options
-	 * 
+	 *
 	 * @return
 	 */
 	protected HashMap<String, CmdLnOption> getOptions() {
@@ -179,7 +186,7 @@ public class CommandOP extends CmdLnItem {
 	/**
 	 * Returns the command-line parameter string list which has been
 	 * given as parameter when calling parse()
-	 * 
+	 *
 	 * @return
 	 */
 	protected List<String> getArgs() {
@@ -188,7 +195,7 @@ public class CommandOP extends CmdLnItem {
 
 	/**
 	 * Adds the given group to the list of groups
-	 * 
+	 *
 	 * @param group
 	 */
 	public void addGroup(CommandOPGroup group) {
@@ -198,7 +205,7 @@ public class CommandOP extends CmdLnItem {
 	/**
 	 * Returns the option with the given name. If the given name
 	 * is an alias, the corresponding item is returned.
-	 * 
+	 *
 	 * @param option
 	 * @return
 	 * @throws CommandOPError
@@ -223,7 +230,7 @@ public class CommandOP extends CmdLnItem {
 
 	/**
 	 * Returns true if the option has been defined and parsed
-	 * 
+	 *
 	 * @param option
 	 * @return
 	 */
@@ -239,7 +246,7 @@ public class CommandOP extends CmdLnItem {
 
 	/**
 	 * Returns true if the parameter has been defined and parsed
-	 * 
+	 *
 	 * @param parameter
 	 * @return
 	 */
@@ -256,7 +263,7 @@ public class CommandOP extends CmdLnItem {
 	/**
 	 * Returns <code>true</code> if there are any arguments found during the parsing
 	 * process which were not defined
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean hasUnknownArguments() {
@@ -266,7 +273,7 @@ public class CommandOP extends CmdLnItem {
 	/**
 	 * The returned map contains all the arguments which were found during parsing
 	 * and were not defined
-	 * 
+	 *
 	 * @return
 	 */
 	public LinkedHashMap<String, PreParsedItem> getUnknownArguments() {
@@ -276,7 +283,7 @@ public class CommandOP extends CmdLnItem {
 	/**
 	 * Returns all the error messages of the errors which occurred during the
 	 * last parsing.
-	 * 
+	 *
 	 * @return
 	 */
 	public LinkedList<String> getErrorMessages() {
@@ -286,7 +293,7 @@ public class CommandOP extends CmdLnItem {
 	/**
 	 * Returns all the info messages of the errors which occurred during the
 	 * last parsing.
-	 * 
+	 *
 	 * @return
 	 */
 	public LinkedList<String> getInfoMessages() {
@@ -295,7 +302,7 @@ public class CommandOP extends CmdLnItem {
 
 	/**
 	 * Resets all options and parameters (clears all values and resets all states)
-	 * 
+	 *
 	 */
 	@Override
 	public void reset() {
@@ -313,7 +320,7 @@ public class CommandOP extends CmdLnItem {
 
 	/**
 	 * Resets all items in the map and also all children
-	 * 
+	 *
 	 * @param children
 	 */
 	private void resetAll(HashMap<String, CmdLnValue> children) {
@@ -328,8 +335,8 @@ public class CommandOP extends CmdLnItem {
 	/**
 	 * This method parses the command line arguments which have to be given in
 	 * the list as "name=value" strings (or just "name" for boolean parameters).
-	 * 
-	 * 
+	 *
+	 *
 	 * @param item The item under which the command line arguments/properties should be parsed
 	 * @param argsList The command line arguments/properties
 	 * @param overwriteParsed If set to <code>true</code>, items which have already
@@ -371,8 +378,8 @@ public class CommandOP extends CmdLnItem {
 	/**
 	 * This method parses the command line arguments which have to be given in
 	 * the list as "name=value" strings (or just "name" for boolean parameters).
-	 * 
-	 * 
+	 *
+	 *
 	 * @param argsList The command line arguments/properties
 	 * @param overwriteParsed If set to <code>true</code>, items which have already
 	 * been parsed by a previous call to parse() will be overwritten. If set to <code>false</code>,
@@ -388,8 +395,8 @@ public class CommandOP extends CmdLnItem {
 	/**
 	 * This method parses the command line arguments which have to be given in
 	 * the array as "name=value" strings (or just "name" for boolean parameters).
-	 * 
-	 * 
+	 *
+	 *
 	 * @param argsArray The command line arguments/properties
 	 * @param overwriteParsed If set to <code>true</code>, items which have already
 	 * been parsed by a previous call to parse() will be overwritten. If set to <code>false</code>,
@@ -406,8 +413,8 @@ public class CommandOP extends CmdLnItem {
 	/**
 	 * This method parses the command line arguments which have to be given in
 	 * the array as "name=value" strings (or just "name" for boolean parameters).
-	 * 
-	 * 
+	 *
+	 *
 	 * @param item The item under which the command line arguments/properties should be parsed
 	 * @param argsArray The command line arguments/properties
 	 * @param overwriteParsed If set to <code>true</code>, items which have already
@@ -425,8 +432,8 @@ public class CommandOP extends CmdLnItem {
 	/**
 	 * This method parses the command line arguments which have to be given in
 	 * the map as "name"=>"value" pairs (or just "name"=>null for boolean parameters).
-	 * 
-	 * 
+	 *
+	 *
 	 * @param argsMap The command line arguments/properties
 	 * @param overwriteParsed If set to <code>true</code>, items which have already
 	 * been parsed by a previous call to parse() will be overwritten. If set to <code>false</code>,
@@ -443,8 +450,8 @@ public class CommandOP extends CmdLnItem {
 	/**
 	 * This method parses the command line arguments which have to be given in
 	 * the map as "name"=>"value" pairs (or just "name"=>null for boolean parameters).
-	 * 
-	 * 
+	 *
+	 *
 	 * @param item The item under which the command line arguments/properties should be parsed
 	 * @param argsMap The command line arguments/properties
 	 * @param overwriteParsed If set to <code>true</code>, items which have already
@@ -461,7 +468,7 @@ public class CommandOP extends CmdLnItem {
 
 	/**
 	 * This method validates the parsed items
-	 * 
+	 *
 	 * @throws CommandOPError
 	 */
 	private void validate() throws CommandOPError {
@@ -575,7 +582,7 @@ public class CommandOP extends CmdLnItem {
 	 * Follows the pre parsed chain of options/parameters one by one, looking
 	 * for the corresponding defined item (or its alias). If a defined item is found,
 	 * its value is set.
-	 * 
+	 *
 	 * @param overwriteParsed
 	 * @throws CommandOPError
 	 */
@@ -735,7 +742,7 @@ public class CommandOP extends CmdLnItem {
 	 * is created, short options are split up, the
 	 * item name and value are split and a flag is set whether it is an
 	 * option, a short option or a parameter.
-	 * 
+	 *
 	 * @param args The command line arguments
 	 */
 	private void createPreParsedChain(List<String> args) {
@@ -793,8 +800,8 @@ public class CommandOP extends CmdLnItem {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @param errorMessage
 	 * @throws CommandOPError
 	 */
@@ -806,8 +813,8 @@ public class CommandOP extends CmdLnItem {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @param infoMessage
 	 * @throws CommandOPError
 	 */
@@ -816,8 +823,8 @@ public class CommandOP extends CmdLnItem {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @param e
 	 */
 	public void exceptionAtFirstError(boolean e) {
