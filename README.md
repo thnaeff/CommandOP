@@ -20,6 +20,7 @@ Features:
 * Parsing parameters from arrays, lists and maps (helpful for including [Properties](https://docs.oracle.com/javase/tutorial/essential/environment/properties.html))
 * Choose between using the first or the last occurrence of a command line item
 * Repeated parsing of command line options possible. Parsed options can be consolidated or overwritten
+* Retrieve map of key-value pairs
 
 
 
@@ -171,6 +172,11 @@ System.out.println(item2.getName() + "=" + item2.getValue());
 ```
 
 *Hint: use `cmdop.hasOption("server")` or `cmdop.hasParameter("timeout")` to check if the option/parameter has been parsed.*
+
+A second possibility is to retrieve all parsed command line options and parameters 
+as a map. The `CommandOP` class and the `CmdLnValue` class offer the method `toMap()` 
+which returns a map containing the child options/parameters, with their names as key and 
+the value(s) as `CmdLnValue`.
 
 
 

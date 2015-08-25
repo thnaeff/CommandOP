@@ -53,7 +53,7 @@ import java.util.Map;
  * - Parsing of arrays, lists and maps (helpful for including Properties)<br />
  * - Choose between using the first or the last occurrence of a command line item<br />
  * - Repeated parsing of command line options possible. Parsed options can be consolidated or overwritten<br />
- *
+ * - Retrieve map of key-value pairs<br />
  *
  *
  * @author Thomas Naeff (github.com/thnaeff)
