@@ -53,7 +53,7 @@ public class CommandOPTest {
 		//of parameters as children
 		cmdop.addOption("a", "short param a, boolean").setAsBoolean().setMandatory();
 
-		cmdop.addOption("c", "def", "short param c, not boolean").setValueRequired();
+		cmdop.addOption("c", "def", "short param c, not boolean").setValueRequired().setTypeString("sometype");
 
 		cmdop.addOption("x", "defx", "some param x");
 
@@ -66,12 +66,12 @@ public class CommandOPTest {
 				.addParameters(
 						CommandOPFactory.newParameter("param211", "def211", "").setValueRequired()
 						),
-						CommandOPFactory.newParameter("param22", "").setValueRequired(),
-						CommandOPFactory.newParameter("param23", ""),
-						CommandOPFactory.newParameter("param24", "").setValueRequired()
-						.addParameters(
-								CommandOPFactory.newParameter("param241", "").setMandatory()
-								)
+				CommandOPFactory.newParameter("param22", "").setValueRequired(),
+				CommandOPFactory.newParameter("param23", ""),
+				CommandOPFactory.newParameter("param24", "").setValueRequired()
+				.addParameters(
+						CommandOPFactory.newParameter("param241", "").setMandatory()
+						)
 				);
 
 		cmdop.addOption("option3", "").setAsMultiValueItem()
@@ -80,7 +80,7 @@ public class CommandOPTest {
 				.addParameters(
 						CommandOPFactory.newParameter("param311", "")
 						),
-						CommandOPFactory.newParameter("param32", "")
+				CommandOPFactory.newParameter("param32", "")
 				);
 
 		CommandOPGroup group1 = new CommandOPGroup(cmdop, "group1", CommandOPGroup.MODE_EXCLUDE);
@@ -177,13 +177,15 @@ public class CommandOPTest {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @param cmdop
 	 */
 	public static void printInfo(CommandOP cmdop) {
 		CommandOPPrinter printer = new CommandOPPrinter(cmdop);
 
+		System.out.println("################");
+		System.out.println(" ");
 		System.out.println("args=" + printer.getArgs());
 		System.out.println(" ");
 		System.out.println("preParsed: " + printer.getPreParsed(true));
@@ -198,7 +200,7 @@ public class CommandOPTest {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param title
 	 * @param list
 	 */

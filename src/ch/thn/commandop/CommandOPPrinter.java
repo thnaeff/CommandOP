@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 package ch.thn.commandop;
 
@@ -32,7 +32,7 @@ public class CommandOPPrinter {
 	/**
 	 * Printer-class with some methods to display the {@link CommandOP}-status
 	 * and the parsed items
-	 * 
+	 *
 	 * @param cmdop
 	 */
 	public CommandOPPrinter(CommandOP cmdop) {
@@ -42,7 +42,7 @@ public class CommandOPPrinter {
 
 	/**
 	 * Returns a formatted list of the pre-parsed items
-	 * 
+	 *
 	 * @param flat
 	 * @return
 	 */
@@ -80,7 +80,7 @@ public class CommandOPPrinter {
 
 	/**
 	 * Returns some help text for the usage with the defined items
-	 * 
+	 *
 	 * @return
 	 */
 	public String getHelpText() {
@@ -95,7 +95,7 @@ public class CommandOPPrinter {
 	/**
 	 * Returns a formatted list showing the defined items with value (if selected) and
 	 * description
-	 * 
+	 *
 	 * @param flat
 	 * @param withValue
 	 * @param withDescription
@@ -165,6 +165,12 @@ public class CommandOPPrinter {
 			//			}
 
 			line.append(item.getName());
+
+			if (item.getTypeString() != null) {
+				line.append(" <");
+				line.append(item.getTypeString());
+				line.append(">");
+			}
 
 			//Optional
 			if (!item.isMandatory()) {
@@ -260,7 +266,7 @@ public class CommandOPPrinter {
 
 	/**
 	 * Returns the plain command line string
-	 * 
+	 *
 	 * @return
 	 */
 	public String getArgs() {

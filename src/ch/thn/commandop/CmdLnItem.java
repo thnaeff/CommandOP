@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 package ch.thn.commandop;
 
@@ -27,8 +27,8 @@ import ch.thn.commandop.validator.CommandOPValidator;
 
 /**
  * The base class for any command line item ({@link CmdLnOption}, {@link CmdLnParameter})
- * 
- * 
+ *
+ *
  * @author Thomas Naeff (github.com/thnaeff)
  *
  */
@@ -59,6 +59,7 @@ public abstract class CmdLnItem {
 	private String description = null;
 	private String name = null;
 	private String defaultValue = null;
+	protected String typeString = null;
 
 	private LinkedList<String> values = null;
 
@@ -79,7 +80,7 @@ public abstract class CmdLnItem {
 
 
 	/**
-	 * 
+	 *
 	 * @param name
 	 * @param defaultValue
 	 * @param description
@@ -96,7 +97,7 @@ public abstract class CmdLnItem {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param name
 	 * @param description
 	 */
@@ -105,7 +106,7 @@ public abstract class CmdLnItem {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param name
 	 */
 	protected CmdLnItem(String name) {
@@ -113,7 +114,7 @@ public abstract class CmdLnItem {
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	protected CmdLnItem() {
 		this(null, null);
@@ -122,8 +123,8 @@ public abstract class CmdLnItem {
 	/**
 	 * Resets the values and the parsed flag so that the item
 	 * can be reused again for parsing.
-	 * 
-	 * 
+	 *
+	 *
 	 */
 	protected void reset() {
 		values.clear();
@@ -133,7 +134,7 @@ public abstract class CmdLnItem {
 
 	/**
 	 * Sets the parent item of the tree
-	 * 
+	 *
 	 * @param parent
 	 */
 	protected void setParent(CmdLnItem parent) {
@@ -144,7 +145,7 @@ public abstract class CmdLnItem {
 
 	/**
 	 * Returns this items parent item, or null if there is no parent
-	 * 
+	 *
 	 * @return
 	 */
 	protected CmdLnItem getParent() {
@@ -158,7 +159,7 @@ public abstract class CmdLnItem {
 	/**
 	 * Returns this items parent item. If it is a top level item, the parent
 	 * might be a {@link CommandOP} object
-	 * 
+	 *
 	 * @return
 	 */
 	protected CmdLnItem getParentInternal() {
@@ -168,7 +169,7 @@ public abstract class CmdLnItem {
 	/**
 	 * Returns the level of this item. The level defines the position
 	 * in the tree (+1 of it's parent item)
-	 * 
+	 *
 	 * @return
 	 */
 	protected int getLevel() {
@@ -177,7 +178,7 @@ public abstract class CmdLnItem {
 
 	/**
 	 * Adds the given items as children to this item
-	 * 
+	 *
 	 * @param items
 	 * @return
 	 */
@@ -193,7 +194,7 @@ public abstract class CmdLnItem {
 
 	/**
 	 * Adds a new item with the given parameters to this item as child
-	 * 
+	 *
 	 * @param name
 	 * @param defaultValue
 	 * @param description
@@ -208,7 +209,7 @@ public abstract class CmdLnItem {
 
 	/**
 	 * Adds a new item with the given parameters to this item as child
-	 * 
+	 *
 	 * @param name
 	 * @param description
 	 * @return
@@ -220,7 +221,7 @@ public abstract class CmdLnItem {
 	/**
 	 * Sets an alias for this item. The alias can be used instead of
 	 * this item name.
-	 * 
+	 *
 	 * @param aliasOf
 	 */
 	protected void setAliasOf(CmdLnItem aliasOf) {
@@ -229,7 +230,7 @@ public abstract class CmdLnItem {
 
 	/**
 	 * Returns the item of which this item is the alias of
-	 * 
+	 *
 	 * @return
 	 */
 	protected CmdLnItem getAliasOf() {
@@ -256,7 +257,7 @@ public abstract class CmdLnItem {
 	/**
 	 * Returns true if this item has the specified child item and if the item
 	 * has been parsed.
-	 * 
+	 *
 	 * @param childName
 	 * @return
 	 */
@@ -266,7 +267,7 @@ public abstract class CmdLnItem {
 
 	/**
 	 * Returns true if this item has one or more child items
-	 * 
+	 *
 	 * @return
 	 */
 	protected boolean hasChildren() {
@@ -277,7 +278,7 @@ public abstract class CmdLnItem {
 	 * Returns the child parameter with the given name, or null if the child
 	 * parameter does not exist. If the given name is an alias, the
 	 * corresponding child parameter is returned.
-	 * 
+	 *
 	 * @param childName
 	 * @return
 	 */
@@ -298,7 +299,7 @@ public abstract class CmdLnItem {
 	/**
 	 * Returns the list with all the children of this item
 	 * (not recursively). The children also include alias items.
-	 * 
+	 *
 	 * @return
 	 */
 	protected LinkedHashMap<String, CmdLnValue> getChildrenInternal() {
@@ -309,7 +310,7 @@ public abstract class CmdLnItem {
 	 * Returns all the child parameters of this item as a unmodifiable map. The child
 	 * items are stored in a {@link LinkedHashMap}, thus also the returned map
 	 * has the same order.
-	 * 
+	 *
 	 * @param map
 	 * @return
 	 */
@@ -319,7 +320,7 @@ public abstract class CmdLnItem {
 
 	/**
 	 * Returns the name of this item
-	 * 
+	 *
 	 * @return
 	 */
 	protected String getName() {
@@ -327,10 +328,19 @@ public abstract class CmdLnItem {
 	}
 
 	/**
+	 * Retrurny the type string which has been defined for this item
+	 *
+	 * @return
+	 */
+	protected String getTypeString() {
+		return typeString;
+	}
+
+	/**
 	 * Returns the value of this item, or if no value is set the default value
 	 * is returned. If the item is defined as multi-value-item, the first
 	 * available value is returned (same as {@link #getValue(int)} with parameter 0)
-	 * 
+	 *
 	 * @return
 	 */
 	protected String getValue() {
@@ -340,7 +350,7 @@ public abstract class CmdLnItem {
 	/**
 	 * Returns the value of this item which is on the given position. If the given
 	 * position does not exist, null is returned.
-	 * 
+	 *
 	 * @param multiValuePos
 	 * @return
 	 */
@@ -369,7 +379,7 @@ public abstract class CmdLnItem {
 	 * Returns all the values of this command line item. If the item is a multi
 	 * value item, it might contain multiple values. If it is not a multi value
 	 * item, the returned list only contains one single value.
-	 * 
+	 *
 	 * @return
 	 */
 	public List<String> getMultiValues() {
@@ -384,7 +394,7 @@ public abstract class CmdLnItem {
 	/**
 	 * Returns the default value, or null if no default
 	 * value is set
-	 * 
+	 *
 	 * @return
 	 */
 	protected String getDefaultValue() {
@@ -394,7 +404,7 @@ public abstract class CmdLnItem {
 	/**
 	 * Returns the description of this item, or null
 	 * if not description has been set
-	 * 
+	 *
 	 * @return
 	 */
 	protected String getDescription() {
@@ -409,7 +419,7 @@ public abstract class CmdLnItem {
 	 * The item is set as Boolean and the value is not null -> Any value that equals "true"
 	 * (ignoring case) sets the item-value to "true". Any other value sets the item-value
 	 * to "false"<br>
-	 * 
+	 *
 	 * @param value
 	 * @return Returns an error message if setting the value failed, or null if
 	 * everything was OK.
@@ -426,7 +436,7 @@ public abstract class CmdLnItem {
 	 * The item is set as Boolean and the value is not null -> Any value that equals "true"
 	 * (ignoring case) sets the item-value to "true". Any other value sets the item-value
 	 * to "false"<br>
-	 * 
+	 *
 	 * @param value
 	 * @return Returns an error message if setting the value failed, or null if
 	 * everything was OK.
@@ -443,7 +453,7 @@ public abstract class CmdLnItem {
 	 * The item is set as Boolean and the value is not null -> Any value that equals "true"
 	 * (ignoring case) sets the item-value to "true". Any other value sets the item-value
 	 * to "false"<br>
-	 * 
+	 *
 	 * @param value
 	 * @param multiValuePos
 	 * @return Returns an info or error message if setting the value failed, or null if
@@ -502,7 +512,7 @@ public abstract class CmdLnItem {
 	/**
 	 * Adds the value to the list of values, but only if it does not exist to avoid
 	 * multiple same values for multi value items
-	 * 
+	 *
 	 * @param value
 	 */
 	private void addValue(String value) {
@@ -519,7 +529,7 @@ public abstract class CmdLnItem {
 	 * value. See isValueRequired() for that matter). The flag of
 	 * a mandatory item is only checked if its parent item is given
 	 * too.
-	 * 
+	 *
 	 * @return
 	 */
 	protected boolean isMandatory() {
@@ -540,7 +550,7 @@ public abstract class CmdLnItem {
 	/**
 	 * Returns true if this item is a child-item of some
 	 * other item
-	 * 
+	 *
 	 * @return
 	 */
 	protected boolean isChild() {
@@ -554,7 +564,7 @@ public abstract class CmdLnItem {
 	/**
 	 * Sets the option-flag which indicates that this item
 	 * is an option (an item with the long prefix {@link CommandOPTools}.OPTIONSPREFIX_LONG)
-	 * 
+	 *
 	 * @return
 	 */
 	protected CmdLnItem setAsOption() {
@@ -567,7 +577,7 @@ public abstract class CmdLnItem {
 	/**
 	 * Returns the option-flag which indicates that this item
 	 * is an option (an item with the long prefix {@link CommandOPTools}.OPTIONSPREFIX_LONG)
-	 * 
+	 *
 	 * @return
 	 */
 	protected boolean isOption() {
@@ -579,7 +589,7 @@ public abstract class CmdLnItem {
 	 * is a short-option (an item with the short prefix
 	 * {@link CommandOPTools}.OPTIONSPREFIX_SHORT). Short options can also be
 	 * combined, for example the short options 'a' and 'b' can be written as "-ab".
-	 * 
+	 *
 	 * @return
 	 */
 	protected CmdLnItem setAsShortOption() {
@@ -592,7 +602,7 @@ public abstract class CmdLnItem {
 	/**
 	 * Sets the short-option-flag which indicates that this item
 	 * is a short-option (an item with the short prefix {@link CommandOPTools}.OPTIONSPREFIX_SHORT)
-	 * 
+	 *
 	 * @return
 	 */
 	protected boolean isShortOption() {
@@ -602,7 +612,7 @@ public abstract class CmdLnItem {
 	/**
 	 * Sets the parameter-flag which indicates that this item
 	 * is a parameter (an item with the no prefix)
-	 * 
+	 *
 	 * @return
 	 */
 	protected CmdLnItem setAsParameter() {
@@ -615,7 +625,7 @@ public abstract class CmdLnItem {
 	/**
 	 * Sets the parameter-flag which indicates that this item
 	 * is a parameter (an item with the no prefix)
-	 * 
+	 *
 	 * @return
 	 */
 	protected boolean isParameter() {
@@ -627,7 +637,7 @@ public abstract class CmdLnItem {
 	 * - option (--)<br />
 	 * - short option (-)<br />
 	 * - parameter<br />
-	 * 
+	 *
 	 * @return
 	 */
 	public String getTypeDescString() {
@@ -647,7 +657,7 @@ public abstract class CmdLnItem {
 	 * - option: "--"<br />
 	 * - short option: "-"<br />
 	 * - parameter: none<br />
-	 * 
+	 *
 	 * @return
 	 */
 	public String getCmdLnTypePrefix() {
@@ -667,7 +677,7 @@ public abstract class CmdLnItem {
 	 * is considered as being parsed if a value has been set (any call to the
 	 * setValue-method, thus even the setValue-method is called with a null-value
 	 * this flag shows that the item has actually been parsed)
-	 * 
+	 *
 	 * @return
 	 */
 	protected boolean isParsed() {
@@ -679,7 +689,7 @@ public abstract class CmdLnItem {
 	 * An item which requires a value has to be given at least with
 	 * an item-value-separator ({@link CommandOPTools}.ITEM_VALUE_SEPARATOR),
 	 * followed by nothing (an empty string) or any other string.
-	 * 
+	 *
 	 * @return
 	 */
 	protected boolean isValueRequired() {
@@ -690,7 +700,7 @@ public abstract class CmdLnItem {
 	 * Sets the status of the hidden-flag.<br>
 	 * If an item is set to be hidden, it does not show up when
 	 * printing the structure with the ({@link CommandOPPrinter}).
-	 * 
+	 *
 	 * @return
 	 */
 	protected CmdLnItem setHiddenInPrint() {
@@ -702,7 +712,7 @@ public abstract class CmdLnItem {
 	 * Returns the status of the hidden-flag.<br>
 	 * If an item is set to be hidden, it does not show up when
 	 * printing with the ({@link CommandOPPrinter}).
-	 * 
+	 *
 	 * @return
 	 */
 	protected boolean isHiddenInPrint() {
@@ -711,7 +721,7 @@ public abstract class CmdLnItem {
 
 	/**
 	 * Returns true if this item is an alias of another item
-	 * 
+	 *
 	 * @return
 	 */
 	protected boolean isAlias() {
@@ -720,7 +730,7 @@ public abstract class CmdLnItem {
 
 	/**
 	 * Returns true if this item has at least one alias
-	 * 
+	 *
 	 * @return
 	 */
 	protected boolean hasAlias() {
@@ -729,7 +739,7 @@ public abstract class CmdLnItem {
 
 	/**
 	 * Returns true if this item has an alias with the given name
-	 * 
+	 *
 	 * @param aliasName
 	 * @return
 	 */
@@ -740,7 +750,7 @@ public abstract class CmdLnItem {
 	/**
 	 * Returns the alias with the given name, or null
 	 * if such an alias does not exist.
-	 * 
+	 *
 	 * @param aliasName
 	 * @return
 	 */
@@ -750,7 +760,7 @@ public abstract class CmdLnItem {
 
 	/**
 	 * Returns the map with all the alias
-	 * 
+	 *
 	 * @return
 	 */
 	protected HashMap<String, CmdLnItem> getAlias() {
@@ -758,8 +768,8 @@ public abstract class CmdLnItem {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @return
 	 */
 	protected boolean hasParent() {
@@ -778,7 +788,7 @@ public abstract class CmdLnItem {
 	 * Returns true if this item is defined as a multi-value-item. If an item is defined
 	 * as such, all the command line arguments which follow the item are
 	 * used as values, until the next defined item appears.
-	 * 
+	 *
 	 * @return
 	 */
 	protected boolean isMultiValueItem() {
@@ -787,7 +797,7 @@ public abstract class CmdLnItem {
 
 	/**
 	 * Returns the maximum value of possible items
-	 * 
+	 *
 	 * @return
 	 */
 	protected int getMultiValuesRangeMax() {
@@ -796,7 +806,7 @@ public abstract class CmdLnItem {
 
 	/**
 	 * Returns the minimum value of possible items
-	 * 
+	 *
 	 * @return
 	 */
 	protected int getMultiValuesRangeMin() {
@@ -806,7 +816,7 @@ public abstract class CmdLnItem {
 	/**
 	 * Returns the number of values. Only if this item is set as
 	 * multi value item this number can be > 1
-	 * 
+	 *
 	 * @return
 	 */
 	protected int getNumOfValues() {
@@ -821,7 +831,7 @@ public abstract class CmdLnItem {
 	/**
 	 * Sets the number which represents the position of this
 	 * item in the command line string
-	 * 
+	 *
 	 * @param cmdLnPos
 	 */
 	protected void setCmdLnPos(int cmdLnPos) {
@@ -839,8 +849,8 @@ public abstract class CmdLnItem {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @return
 	 */
 	protected CmdLnItem getNextItem() {
@@ -881,8 +891,8 @@ public abstract class CmdLnItem {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @return
 	 */
 	protected CmdLnItem getPreviousItem() {
@@ -917,8 +927,8 @@ public abstract class CmdLnItem {
 	/**
 	 * Creates a map of all the children of this command line item. The key is the
 	 * parameter/option name, the value is the command line object.
-	 * 
-	 * 
+	 *
+	 *
 	 * put into the map. If set to <code>false</code>, alias items are omitted.
 	 * @return
 	 */
@@ -929,8 +939,8 @@ public abstract class CmdLnItem {
 	/**
 	 * Creates a map of all the children of this command line item. The key is the
 	 * parameter/option name, the value is the command line object.
-	 * 
-	 * 
+	 *
+	 *
 	 * @param recursive If set to <code>true</code>, it recursively follows children
 	 * @param withAlias If set to <code>true</code>, also alias key-value pairs are
 	 * put into the map. If set to <code>false</code>, alias items are omitted.
@@ -943,8 +953,8 @@ public abstract class CmdLnItem {
 	/**
 	 * Creates a map of all the children of the given command line item. The key is the
 	 * parameter/option name, the value is the command line object.
-	 * 
-	 * 
+	 *
+	 *
 	 * @param item The item to take the children from
 	 * @param m The map to put the children into
 	 * @param recursive If set to <code>true</code>, it recursively follows children
