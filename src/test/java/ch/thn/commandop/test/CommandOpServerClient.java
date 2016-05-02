@@ -2,6 +2,8 @@ package ch.thn.commandop.test;
 
 import java.util.LinkedList;
 
+import org.junit.Test;
+
 import ch.thn.commandop.CmdLnValue;
 import ch.thn.commandop.CommandOP;
 import ch.thn.commandop.CommandOPError;
@@ -11,15 +13,15 @@ import ch.thn.commandop.CommandOPPrinter;
 
 public class CommandOpServerClient {
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
+
+
+	@Test
+	public void testServerClientExample() throws Exception {
 
 		//		args = "--server port=12345 --maxConnections=10 --timeout=20".split(" ");
 		//		args = "--client=my_client host=localhost port=67890 --maxConnections=10".split(" ");
 		//		args = "--client host=localhost port=67890 -ab=value --server port=12345".split(" ");
-		args = "pmulti p1 p2 p3 --omulti o1 o2 o3 -ab --client host=localhost".split(" ");
+		String[] args = "pmulti p1 p2 p3 --omulti o1 o2 o3 -ab --client host=localhost".split(" ");
 
 		CommandOP cmdop = new CommandOP();
 

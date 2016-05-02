@@ -4,6 +4,8 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.Test;
+
 import ch.thn.commandop.CmdLnValue;
 import ch.thn.commandop.CommandOP;
 import ch.thn.commandop.CommandOPError;
@@ -14,16 +16,15 @@ import ch.thn.commandop.validator.NumberValidator;
 
 public class CommandOPTest {
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
+
+	@Test
+	public void testCommandOP() throws Exception {
 
 		//- On the command line, an option is followed by its parameters.
 		//- Parameters can also be defined without a parent option. Those "optionless" parameters
 		//  have to appear at the beginning of the command line.
 
-		args = "optionless1 optionless2=value optionless2=test -abc --option1 param11 param12=value --multivalue cmd0 --option2=a param21=a param211=211 param22=value -s - --  stuff --multivalue=cmd1 cmd2".split(" ");
+		String[] args = "optionless1 optionless2=value optionless2=test -abc --option1 param11 param12=value --multivalue cmd0 --option2=a param21=a param211=211 param22=value -s - --  stuff --multivalue=cmd1 cmd2".split(" ");
 		//		args = "x=test y z -ca --atest=aliasvalue --option1 param12=123 --option3 unknownparam=value3 multivalue1 multivalue2 --option2=o2 param21=21 param211=p211 param22=22".split(" ");
 		//		args = "optionless2 --atest=test --option3 value1 value2 value3 param31=31 param311=311 param32=32 --option2=o2".split(" ");
 		//		args = "--help".split(" ");
