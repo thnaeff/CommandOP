@@ -1,6 +1,10 @@
-package ch.thn.commandop.test;
+package ch.thn.commandop;
+
+import static org.junit.Assert.*;
 
 import java.util.LinkedList;
+
+import org.junit.Test;
 
 import ch.thn.commandop.CmdLnValue;
 import ch.thn.commandop.CommandOP;
@@ -10,11 +14,11 @@ import ch.thn.commandop.CommandOPGroup;
 import ch.thn.commandop.CommandOPPrinter;
 
 public class CommandOpServerClient {
-
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
+	
+	@Test
+	public void test() throws Exception {
+		
+		String[] args = null;
 
 		//		args = "--server port=12345 --maxConnections=10 --timeout=20".split(" ");
 		//		args = "--client=my_client host=localhost port=67890 --maxConnections=10".split(" ");

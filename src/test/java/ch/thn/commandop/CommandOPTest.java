@@ -1,8 +1,12 @@
-package ch.thn.commandop.test;
+package ch.thn.commandop;
+
+import static org.junit.Assert.*;
 
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
+
+import org.junit.Test;
 
 import ch.thn.commandop.CmdLnValue;
 import ch.thn.commandop.CommandOP;
@@ -13,11 +17,11 @@ import ch.thn.commandop.CommandOPPrinter;
 import ch.thn.commandop.validator.NumberValidator;
 
 public class CommandOPTest {
-
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
+	
+	@Test
+	public void test() throws Exception {
+		
+		String[] args = null;
 
 		//- On the command line, an option is followed by its parameters.
 		//- Parameters can also be defined without a parent option. Those "optionless" parameters
