@@ -1,4 +1,4 @@
-package ch.thn.commandop;
+package ch.thn.app.commandop;
 
 import static org.junit.Assert.*;
 
@@ -8,13 +8,13 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import ch.thn.commandop.CmdLnValue;
-import ch.thn.commandop.CommandOP;
-import ch.thn.commandop.CommandOPError;
-import ch.thn.commandop.CommandOPFactory;
-import ch.thn.commandop.CommandOPGroup;
-import ch.thn.commandop.CommandOPPrinter;
-import ch.thn.commandop.validator.NumberValidator;
+import ch.thn.app.commandop.CmdLnValue;
+import ch.thn.app.commandop.CommandOP;
+import ch.thn.app.commandop.CommandOPError;
+import ch.thn.app.commandop.CommandOPFactory;
+import ch.thn.app.commandop.CommandOPGroup;
+import ch.thn.app.commandop.CommandOPPrinter;
+import ch.thn.app.commandop.validator.NumberValidator;
 
 public class CommandOPTest {
 	

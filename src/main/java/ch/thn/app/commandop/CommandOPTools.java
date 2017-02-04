@@ -14,7 +14,7 @@
  * limitations under the License.
  * 
  */
-package ch.thn.commandop;
+package ch.thn.app.commandop;
 
 import java.util.Collection;
 import java.util.Iterator;

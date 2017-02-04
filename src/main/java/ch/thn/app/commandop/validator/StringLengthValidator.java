@@ -14,9 +14,9 @@
  * limitations under the License.
  * 
  */
-package ch.thn.commandop.validator;
+package ch.thn.app.commandop.validator;
 
-import ch.thn.commandop.CmdLnItem;
+import ch.thn.app.commandop.CmdLnItem;
 
 /**
  * @author Thomas Naeff (github.com/thnaeff)

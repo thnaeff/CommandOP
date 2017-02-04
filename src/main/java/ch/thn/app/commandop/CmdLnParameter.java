@@ -14,9 +14,9 @@
  * limitations under the License.
  *
  */
-package ch.thn.commandop;
+package ch.thn.app.commandop;
 
-import ch.thn.commandop.validator.CommandOPValidator;
+import ch.thn.app.commandop.validator.CommandOPValidator;
 
 
 /**

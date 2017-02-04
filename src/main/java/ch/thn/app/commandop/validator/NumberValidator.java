@@ -14,24 +14,33 @@
  * limitations under the License.
  * 
  */
-package ch.thn.commandop;
+package ch.thn.app.commandop.validator;
+
+import ch.thn.app.commandop.CmdLnItem;
 
 /**
  * @author Thomas Naeff (github.com/thnaeff)
  *
  */
-public class CommandOPError extends Error {
-	private static final long serialVersionUID = -3720861165691387006L;
-	
-	/**
-	 * 
-	 * 
-	 * @param errorMessage
-	 */
-	public CommandOPError(String errorMessage) {
-		super(errorMessage);
+public class NumberValidator extends CommandOPValidator {
+
+	@Override
+	public boolean validate(CmdLnItem item, String newValue, int multiValuePos) {
+		
+		if (newValue == null) {
+			setErrorMessage("Failed to parse value as integer. Value is NULL");
+			return false;
+		}
+		
+		try {
+			Integer.parseInt(newValue);
+		} catch (NumberFormatException e) {
+			setErrorMessage("Failed to parse value as integer. Value does not contain a parsable integer.");
+			return false;
+		}
+		
+		return true;
+		
 	}
-	
-	
-	
+
 }

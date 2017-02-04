@@ -1,6 +1,16 @@
 # CommandOP
 **Commandline (CLI) Option Parser**
 
+---
+
+
+[![License](http://img.shields.io/badge/License-Apache v2.0-802879.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
+[![Java Version](http://img.shields.io/badge/Java-1.6%2B-2E6CB8.svg)](https://java.com)
+[![Apache Maven ready](http://img.shields.io/badge/Apache Maven ready-3.3.9%2B-FF6804.svg)](https://maven.apache.org/)
+
+
+---
+
 With CommandOP you get a small Java library which parses [command line (CLI) arguments](http://en.wikipedia.org/wiki/Command-line_argument#Arguments). The library offers a wide range of possibilities, from simple flat command lines to structured parsing and grouping. The library tries to follow the GNU command line style as much as possible.
 
 Advantages of CommandOP are that options and parameters can be structured in a unlimited tree-like construct. This allows for if-then relations (parameters are only allowed if their parent parameter/option is given). Include and exclude groups are also supported. Many other command line parsers only support the traditional flat structures (often just with optional/mandatory options). Options in CommandOP are given as key/value pairs (--option o2=v2 o1=v1...) and CommandOP supports variable argument lists with a defined min/max number of arguments (e.g. --option value1 value2 value3).
@@ -309,4 +319,28 @@ CmdLnValue item13 = cmdop.getOption("omulti").getValue(3);	//o3
 * One or more short options for each option
 * Write your own validator by extending `CommandOPValidator` and add it to any command line item with `setValidator(...)`
 
+
+
+---
+
+
+<img src="http://maven.apache.org/images/maven-logo-black-on-white.png" alt="Built with Maven" width="150">
+
+This project can be built with Maven
+
+Maven command:
+```
+$ mvn clean install
+```
+
+pom.xml entry in your project:
+```
+<dependency>
+	<groupId>ch.thn.app</groupId>
+	<artifactId>commandop</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+</dependency>
+```
+
+---
 
